@@ -34,6 +34,7 @@ export class Guid {
     return this.value;
   }
 }
+//Test change
 // var e = new Guid();
 
 // e; // Guid { value: '00000000-0000-0000-0000-000000000000' }​​​​​
