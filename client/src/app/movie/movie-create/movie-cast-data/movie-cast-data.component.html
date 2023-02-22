@@ -1,0 +1,39 @@
+<form>
+  <div fxLayout="column wrap" fxLayoutGap="40px">
+    <ng-container *ngIf="isEdit; then edit; else view">
+    </ng-container>
+    <ng-template #edit>
+      <div [formGroup]="movieCastForm" fxLayout="row">
+        <div fxLayout="row wrap" fxFlex>
+          <div fxFlex>
+            <mat-form-field>
+              <input matInput type="text" formControlName="celebrityName" id="celebrityName"
+                [(ngModel)]="castMember.celebrityName" />
+            </mat-form-field>
+          </div>
+          <div fxFlex>
+            <mat-form-field>
+              <input matInput type="text" formControlName="characterName" id="characterName"
+                [(ngModel)]="castMember.characterName" />
+            </mat-form-field>
+          </div>
+          <button mat-icon-button color="accent" (click)="setEditMode()">
+            <mat-icon class="mat-18">save</mat-icon>
+          </button>
+          <button mat-icon-button color="accent" (click)="delete()">
+            <mat-icon class="mat-18">delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #view>
+      <div fxLayout="row wrap" fxFlex>
+        <div fxFlex>{{castMember.celebrityName}}</div>
+        <div fxFlex>{{castMember.characterName}}</div>
+        <button mat-icon-button color="accent" (click)="setEditMode()">
+          <mat-icon class="mat-18">system_update</mat-icon>
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</form>

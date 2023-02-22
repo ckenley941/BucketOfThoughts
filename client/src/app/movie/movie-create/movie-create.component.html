@@ -1,0 +1,54 @@
+<section fxLayout="row wrap" fxLayoutAlign="center center">
+  <mat-card fxFlex="500px" fxFlex.xs="100%">
+    <mat-card-title>Ya done seen another movie?</mat-card-title>
+    <form [formGroup]="movieForm" autocomplete="off" novalidate (ngSubmit)="addMovie(movieForm.value)"
+      fxLayout="column wrap" fxLayoutAlign="center center" fxLayoutGap="10px">
+      <mat-card-content>
+        <mat-form-field>
+          <input matInput type="text" placeholder="Name" formControlName="name" id="name" />
+          <mat-error *ngIf="hasError('name', 'required')">Name is required</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput type="text" placeholder="Director" formControlName="director" id="director" />
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput type="number" placeholder="Year" formControlName="year" id="year" />
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput type="text" placeholder="Description" formControlName="description" id="description" />
+        </mat-form-field>
+        <mat-form-field style="width: 175px; margin-right: 50 px;">
+          <mat-label>Last Seen</mat-label>
+          <input matInput [matDatepicker]="picker1" formControlName="lastSeenDate" />
+          <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+        <mat-checkbox formControlName="isFavorite">Favorite</mat-checkbox>
+        <mat-checkbox formControlName="onWatchlist">Watchlist</mat-checkbox>
+        <h1>Cast
+          <button mat-icon-button color="accent" (click)="addCastMember()">
+            <mat-icon class="mat-18">add</mat-icon>
+          </button>
+        </h1>
+        <div fxLayout="column wrap" fxLayoutGap="40px">
+          <div fxLayout="row wrap" fxFlex>
+            <div fxFlex><strong>Celebrity</strong></div>
+            <div fxFlex><strong>Character Name</strong></div>
+          </div>
+        </div>
+        <div *ngFor="let castMember of movieCast; let index = index;">
+          <bot-movie-cast-member-data [castMember]="castMember" (deleteRow)="deleteCastMember($event)">
+          </bot-movie-cast-member-data>
+        </div>
+      </mat-card-content>
+      <mat-card-actions align="center">
+        <button mat-raised-button color="primary" [disabled]="!movieForm.valid">
+          Create
+        </button>
+        <button type="button" mat-raised-button color="warn" (click)="onCancel()">
+          Cancel
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</section>

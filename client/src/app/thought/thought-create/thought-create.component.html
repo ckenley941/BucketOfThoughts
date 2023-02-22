@@ -1,0 +1,46 @@
+<section fxLayout="row wrap" fxLayoutAlign="center center">
+  <mat-card fxFlex="500px" fxFlex.xs="100%">
+    <mat-card-title>What ya thinkin?</mat-card-title>
+    <form [formGroup]="thoughtForm" autocomplete="off" novalidate (ngSubmit)="addThought(thoughtForm.value)"
+      fxLayout="column wrap" fxLayoutAlign="center center" fxLayoutGap="10px">
+      <mat-card-content>
+        <mat-form-field>
+          <input matInput type="text" placeholder="New Thought" formControlName="description" id="description" />
+          <!-- <mat-hint align="end">Not more then 60 characters long.</mat-hint> -->
+          <mat-error *ngIf="hasError('description', 'required')">Name is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field style="width: 300px;">
+          <mat-select [(ngModel)]="selectedCategory" placeholder="Category" formControlName="category">
+            <mat-option *ngFor="let category of categories" [value]="category.thoughtCategoryId">
+              {{ category.description }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="isQuote">Quote</mat-checkbox>
+
+        <mat-form-field style="width: 175px; margin-right: 50 px;">
+          <mat-label>Date From</mat-label>
+          <input matInput [matDatepicker]="picker1" formControlName="timelineDateFrom" />
+          <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field style="width: 175px;">
+          <mat-label>Date To</mat-label>
+          <input matInput [matDatepicker]="picker2" formControlName="timelineDateTo" />
+          <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions align="center">
+        <button mat-raised-button color="primary" [disabled]="!thoughtForm.valid">
+          Create
+        </button>
+        <button type="button" mat-raised-button color="warn" (click)="onCancel()">
+          Cancel
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</section>

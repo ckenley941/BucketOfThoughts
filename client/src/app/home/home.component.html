@@ -1,0 +1,52 @@
+<section fxLayout="column" fxFlexAlign="stretch">
+  <div fxFlexAlign="center">
+    <p>When I jumped off, I had a bucket full of thoughts</p>
+  </div>
+  <mat-tab-group (selectedTabChange)="tabChanged($event)">
+    <mat-tab label="Bucket">
+      <div class="container">
+        <div class="flex-container" fxLayout="row">
+          <mat-card fxFlex="45%">
+            <mat-card-title>Random Thought
+              <button mat-icon-button color="primary" style="vertical-align: middle;" (click)="refreshThought()">
+                <mat-icon class="mat-18">refresh</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" style="vertical-align: middle;" (click)="redirectToThought()">
+                <mat-icon class="mat-18">info</mat-icon>
+              </button>
+            </mat-card-title>
+            <mat-card-content>
+              <bot-dashboard-random-thought></bot-dashboard-random-thought>
+            </mat-card-content>
+          </mat-card>
+          <div fxFlex="10%"></div>
+          <mat-card fxFlex="45%">
+            <mat-card-title>Random Show
+              <button mat-icon-button color="primary" style="vertical-align: middle;" (click)="refreshShow()">
+                <mat-icon class="mat-18">refresh</mat-icon>
+              </button>
+            </mat-card-title>
+            <mat-card-content>
+              <bot-dashboard-random-show></bot-dashboard-random-show>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Of">
+      <mat-card>
+        <mat-card-title>State Fact
+          <button mat-icon-button color="primary" style="vertical-align: middle;" (click)="refreshState()">
+            <mat-icon class="mat-18">refresh</mat-icon>
+          </button>
+        </mat-card-title>
+        <mat-card-content>
+          <bot-dashboard-state-fact></bot-dashboard-state-fact>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="Thoughts">
+      <bot-random-fact></bot-random-fact>
+    </mat-tab>
+  </mat-tab-group>
+</section>

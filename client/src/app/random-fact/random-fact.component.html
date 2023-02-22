@@ -1,0 +1,31 @@
+<form class="example-form">
+  <h4>
+    Add Random Fact
+  </h4>
+  <mat-form-field class="example-full-width">
+    <mat-label>Fact</mat-label>
+    <input matInput name="name" [(ngModel)]="fact.name" />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width">
+    <mat-label>Category</mat-label>
+    <input matInput name="category" [(ngModel)]="fact.category" />
+  </mat-form-field>
+  <button mat-icon-button color="accent" title="Save" (click)="save()">
+    <mat-icon>save</mat-icon>
+  </button>
+</form>
+
+<style>
+  .example-form {
+    padding-left: 100px;
+    min-width: 150px;
+    max-width: 500px;
+    width: 100%;
+  }
+
+  .example-full-width {
+    width: 100%;
+  }
+
+</style>

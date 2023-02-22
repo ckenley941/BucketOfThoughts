@@ -1,0 +1,34 @@
+<section fxLayout="row wrap" fxLayoutAlign="center center">
+  <mat-card fxFlex="500px" fxFlex.xs="100%">
+    <mat-card-title>New Category</mat-card-title>
+    <form [formGroup]="thoughtCategoryForm" autocomplete="off" novalidate
+      (ngSubmit)="addThoughtCategory(thoughtCategoryForm.value)" fxLayout="column wrap" fxLayoutAlign="center center"
+      fxLayoutGap="10px">
+      <mat-card-content>
+        <mat-form-field>
+          <input matInput type="text" placeholder="New Category" formControlName="description" id="description" />
+          <mat-error *ngIf="hasError('description', 'required')">Description is required</mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 300px;">
+          <mat-select [(ngModel)]="selectedParentCategory" placeholder="Parent Category"
+            formControlName="parentCategory">
+            <mat-option *ngFor="let category of categories" [value]="category.thoughtCategoryId">
+              {{ category.description }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput type="number" placeholder="Sort Order" formControlName="sortOrder" id="sortOrder" />
+        </mat-form-field>
+        <mat-card-actions align="center">
+          <button mat-raised-button color="primary" [disabled]="!thoughtCategoryForm.valid">
+            Create
+          </button>
+          <button type="button" mat-raised-button color="warn" (click)="onCancel()">
+            Cancel
+          </button>
+        </mat-card-actions>
+      </mat-card-content>
+    </form>
+  </mat-card>
+</section>

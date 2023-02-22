@@ -1,0 +1,24 @@
+<section fxLayout="row wrap" fxLayoutAlign="center center">
+  <mat-card fxFlex="750px" fxFlex.xs="100%">
+    <mat-card-title>What was thought about again?</mat-card-title>
+    <mat-card-content>
+      <div fxLayout="column wrap" fxLayoutGap="40px">
+        <div fxLayout="row wrap" fxFlex>
+          <div fxFlex="20%"><strong>Description:</strong></div>
+          <div fxFlex style="text-align: left;">{{thought.description}}</div>
+        </div>
+
+        <div fxLayout="row wrap" fxFlex>
+          <div fxFlex="20%"><strong>Category:</strong></div>
+          <div fxFlex style="text-align: left;">{{thought.thoughtCategory.description}}</div>
+        </div>
+
+        <div fxLayout="row wrap" fxFlex>
+          <div fxFlex="20%"><strong>Details:</strong></div>
+        </div>
+        <div fxLayout="row wrap" *ngFor="let thoughtDetail of thought.thoughtDetail;">
+          <div fxFlex>{{thoughtDetail.description}}</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>

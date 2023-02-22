@@ -1,0 +1,5 @@
+<h1>{{thought?.thoughtCategory?.description}}</h1>
+<b> {{thought?.description}}</b>
+<div *ngFor="let detail of thought?.thoughtDetail; let index = index;">
+  <p>{{ detail.description }}</p>
+</div>

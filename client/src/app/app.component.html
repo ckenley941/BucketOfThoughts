@@ -1,0 +1,13 @@
+  <bot-layout>
+    <mat-sidenav-container>
+      <mat-sidenav #sidenav role="navigation">
+        <bot-nav-sidenav (sidenavClose)="sidenav.close()"></bot-nav-sidenav>
+      </mat-sidenav>
+      <mat-sidenav-content>
+        <bot-nav-header (sidenavToggle)="sidenav.toggle()"></bot-nav-header>
+        <main>
+          <router-outlet></router-outlet>
+        </main>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </bot-layout>
