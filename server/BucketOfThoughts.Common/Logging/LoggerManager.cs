@@ -17,6 +17,7 @@ namespace BucketOfThoughts.Common.Logging
 
         public void LogError(string message)
         {
+            //Test Change
             logger.Error(message);
         }
 
