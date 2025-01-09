@@ -4,8 +4,8 @@ import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 
 export function LoginCallback() {
-    const { isAuthenticated, getIdTokenClaims } = useAuth0();
-    const [cookies, setCookie] = useCookies(["IdToken"]);
+    const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+    const [cookies, setCookie] = useCookies(["AccessToken"]);
     const navigate = useNavigate();
     
     useEffect(() => {
@@ -14,16 +14,15 @@ export function LoginCallback() {
       
     
       const getToken = async () => {
-        if (!cookies["IdToken"]){
-          if (isAuthenticated){
-            const token = await getIdTokenClaims();
-            console.log(token);
+        if (!cookies["AccessToken"]){
+          if (isAuthenticated){            
+            const accessToken = await getAccessTokenSilently();
             
             var tomorrow = new Date();
             tomorrow.setDate(new Date().getDate()+1);
-            setCookie("IdToken", token?.__raw, {
-                expires: tomorrow 
-             })
+             setCookie("AccessToken", accessToken, {
+              expires: tomorrow 
+           })
             navigate("/home");
           }
         }else{

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+//import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
  import App from './App.tsx'
@@ -10,10 +10,8 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import { Login } from './components/login/login.tsx';
 import { LoginCallback } from './components/login/login-callback.tsx';
 import { Logout } from './components/login/logout.tsx';
+import env from './env.ts';
 
-
-const domain = "dev-1d3aiv64eevxng3r.us.auth0.com";
-const clientId = "qyr9PM0Xn5BtRbPpu5sjTYpPheQmLGLj";
 
 const router = createBrowserRouter([
   {
@@ -39,17 +37,26 @@ const router = createBrowserRouter([
   
 ]);
 
+const auth0Config = {
+  domain: env.auth0Domain,
+  clientId: env.auth0ClientId,
+  audience: env.auth0Audience
+}
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    {domain && clientId ? 
+  // <StrictMode>
+  <>
+    {auth0Config.domain && auth0Config.clientId && auth0Config.audience ? 
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={auth0Config.domain}
+      clientId={auth0Config.clientId}
       authorizationParams={{
         redirect_uri: window.location.origin + "/login-callback",
+        audience: auth0Config.audience
       }}
     >
       <RouterProvider router={router} />
     </Auth0Provider> : <center className="p-10 font-bold">Auth0 Client not setup</center>}
-  </StrictMode>,
+    </>
+  //{/* </StrictMode> */}
 )
