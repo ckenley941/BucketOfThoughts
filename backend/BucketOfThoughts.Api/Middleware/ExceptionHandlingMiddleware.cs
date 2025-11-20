@@ -1,4 +1,5 @@
-﻿using BucketOfThoughts.Api.Objects;
+﻿using BucketOfThoughts.Api.Extensions;
+using BucketOfThoughts.Api.Objects;
 using System.Net;
 using System.Text.Json;
 
@@ -33,6 +34,6 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
                 break;
         }
 
-        await ResponseHandler.WriteErrorResponse(context, errorResponse);
+        await context.Response.WriteErrorResponse(errorResponse);
     }
 }

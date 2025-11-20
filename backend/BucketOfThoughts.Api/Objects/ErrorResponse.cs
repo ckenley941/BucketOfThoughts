@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using BucketOfThoughts.Api.Extensions;
+using System.Net;
 
 namespace BucketOfThoughts.Api.Objects
 {
@@ -6,7 +7,7 @@ namespace BucketOfThoughts.Api.Objects
     {
         public ErrorResponse(HttpStatusCode statusCode, string errorMessage)
         {
-            Status = (int)statusCode;
+            Status = statusCode.GetIntValue();
             ErrorMessage = errorMessage;
         }
 

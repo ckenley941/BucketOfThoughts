@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BucketOfThoughts.Data.Entities;
 
-[Table("ThoughtModule")]
 public partial class ThoughtModule : BaseDbTable
 {
+    [MaxLength(256)]
     public string Description { get; set; } = null!;
-    public virtual ICollection<ThoughtBucket> ThoughtBuckets { get; set; } = new List<ThoughtBucket>();
+    public ICollection<ThoughtBucket> ThoughtBuckets { get; set; } = [];
 }

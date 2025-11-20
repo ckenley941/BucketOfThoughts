@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BucketOfThoughts.Data.Entities;
-[Table("ThoughtDetail")]
 public partial class ThoughtDetail : BaseModifiableDbTable
 {
+    [MaxLength(Int32.MaxValue)]
     public string Description { get; set; } = null!;
     public long ThoughtId { get; set; }
     public int? SortOrder { get; set; }
-    public virtual Thought Thought { get; set; } = null!;
+    public Thought Thought { get; set; } = null!;
 }

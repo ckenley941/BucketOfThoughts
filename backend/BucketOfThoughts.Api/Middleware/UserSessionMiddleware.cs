@@ -1,5 +1,7 @@
-﻿using BucketOfThoughts.Api.Objects;
+﻿using BucketOfThoughts.Api.Extensions;
+using BucketOfThoughts.Api.Objects;
 using BucketOfThoughts.Data;
+using BucketOfThoughts.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Claims;
@@ -18,7 +20,7 @@ namespace BucketOfThoughts.Api.Middleware
 
                 if (string.IsNullOrEmpty(auth0Id))
                 {
-                    await ResponseHandler.WriteErrorResponse(context, new ErrorResponse(HttpStatusCode.Unauthorized, "Missing Auth0 ID in token."));
+                    await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "Missing Auth0 ID in token."));
                     return;
                 }
                 else
@@ -32,7 +34,7 @@ namespace BucketOfThoughts.Api.Middleware
                     {
                         if (autoSave)
                         {
-                            loginProfile = new Data.Entities.LoginProfile
+                            loginProfile = new LoginProfile
                             {
                                 Auth0Id = auth0Id,
                                 DisplayName = user.FindFirst("name")?.Value ?? "New User"
@@ -42,7 +44,7 @@ namespace BucketOfThoughts.Api.Middleware
                         }
                         else
                         {
-                            await ResponseHandler.WriteErrorResponse(context, new ErrorResponse(HttpStatusCode.Unauthorized, "User not found for the supplied Auth0 ID."));
+                            await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "User not found for the supplied Auth0 ID."));
                             return;
                         }
                     }
@@ -61,6 +63,11 @@ namespace BucketOfThoughts.Api.Middleware
                     };
                     context.Items["CurrentUser"] = session;
                 }
+            }
+            else
+            {
+                await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "User not authorized."));
+                return;
             }
 
             await next(context);

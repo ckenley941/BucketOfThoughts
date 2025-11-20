@@ -11,7 +11,7 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
     public virtual DbSet<ThoughtBucket> ThoughtBuckets { get; set; }
     public virtual DbSet<ThoughtDetail> ThoughtDetails { get; set; }
     public virtual DbSet<ThoughtModule> ThoughtModules { get; set; }
-    //public virtual DbSet<ThoughtWebsiteLink> ThoughtWebsiteLinks { get; set; }
+    public virtual DbSet<ThoughtWebsiteLink> ThoughtWebsiteLinks { get; set; }
     public virtual DbSet<WebsiteLink> WebsiteLinks { get; set; }
 
     public BucketOfThoughtsDbContext(DbContextOptions<BucketOfThoughtsDbContext> options)
@@ -21,26 +21,20 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //{
-        //    modelBuilder.Entity<RelatedThought>(entity =>
-        //    {
-        //        //entity.HasKey(e => e.Id);
+        modelBuilder.Entity<RelatedThought>(builder =>
+        {
+            builder
+            .HasOne(rt => rt.ParentThought)
+            .WithMany(t => t.RelatedThoughts)
+            .HasForeignKey(rt => rt.ParentThoughtId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        //        entity.ToTable("RelatedThought");
-
-        //        //entity.Property(e => e.CreatedDateTime)
-        //        //    .HasDefaultValueSql("(getutcdate())");
-
-        //        //entity.HasOne(d => d.ThoughtId1Navigation).WithMany(p => p.RelatedThoughtThoughtId1Navigations)
-        //        //    .HasForeignKey(d => d.ThoughtId1)
-        //        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //        //    .HasConstraintName("FK_RelatedThought_Thought1");
-
-        //        //entity.HasOne(d => d.ThoughtId2Navigation).WithMany(p => p.RelatedThoughtThoughtId2Navigations)
-        //        //    .HasForeignKey(d => d.ThoughtId2)
-        //        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //        //    .HasConstraintName("FK_RelatedThought_Thought2");
-        //    });
+            builder
+             .HasOne(rt => rt.RelatedThoughtEntity)
+             .WithMany(t => t.ParentLinks)
+             .HasForeignKey(rt => rt.RelatedThoughtId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
 
         //    modelBuilder.Entity<Thought>(entity =>
         //    {

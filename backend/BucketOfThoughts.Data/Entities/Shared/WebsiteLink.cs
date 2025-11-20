@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BucketOfThoughts.Data.Entities;
 
-[Table("WebsiteLink")]
 public partial class WebsiteLink : BaseModifiableDbTable
 {
+    [MaxLength(1000)]
     public string WebsiteUrl { get; set; } = null!;
+    [MaxLength(256)]
     public string? Description { get; set; }
     public int? SortOrder { get; set; }
-    public virtual ICollection<ThoughtWebsiteLink> ThoughtWebsiteLinks { get; set; } = new List<ThoughtWebsiteLink>();
+    public virtual ICollection<ThoughtWebsiteLink> ThoughtWebsiteLinks { get; set; } = [];
 }

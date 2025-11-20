@@ -1,12 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿namespace BucketOfThoughts.Data.Entities;
 
-namespace BucketOfThoughts.Data.Entities;
-
-[Table("RelatedThought")]
 public partial class RelatedThought : BaseDbTable
 {
-    public long ThoughtId1 { get; set; }
-    public long ThoughtId2 { get; set; }
-    public virtual Thought ThoughtId1Navigation { get; set; } = null!;
-    public virtual Thought ThoughtId2Navigation { get; set; } = null!;
+    public long ParentThoughtId { get; set; }
+    public long RelatedThoughtId { get; set; }
+    public Thought ParentThought { get; set; } = null!;
+    public Thought RelatedThoughtEntity { get; set; } = null!;
 }
