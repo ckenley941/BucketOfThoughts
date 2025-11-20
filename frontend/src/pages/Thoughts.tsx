@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { apiClient } from '../services/api';
-import type { Thought, ApiResponse } from '../types';
+import type { Thought, ServiceResponse } from '../types';
 
 const Thoughts = () => {
   const navigate = useNavigate();
@@ -38,12 +38,10 @@ const Thoughts = () => {
           },
         });
 
-        const response = await apiClient.get<ApiResponse<Thought>>(
+        const response = await apiClient.get<ServiceResponse<Thought>>(
           'api/thoughts',
           token
         );
-
-        console.log(response);
 
         if (response.isSuccess) {
           setThoughts(response.results);

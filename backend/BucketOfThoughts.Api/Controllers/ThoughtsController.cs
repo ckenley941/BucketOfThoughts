@@ -25,4 +25,18 @@ public class ThoughtsController(IThoughtService thoughtService) : ControllerBase
         };
         return Ok(apiResponse);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<ThoughtDto>>> Post(ThoughtDto thought)
+    {
+        var user = new CurrentUser(User);
+        var auth0Id = User.Auth0Id();
+        var newThought = await thoughtService.AddThought(thought);
+
+        var apiResponse = new ApiResponse<ThoughtDto>
+        {
+            Results = new List<ThoughtDto> { newThought }
+        };
+        return Ok(apiResponse);
+    }
 }

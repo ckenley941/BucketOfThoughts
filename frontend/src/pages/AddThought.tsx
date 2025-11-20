@@ -1,13 +1,49 @@
-import { Typography, Box, TextField, Button } from '@mui/material';
+import { Typography, Box, TextField, Button, Alert, CircularProgress } from '@mui/material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
+import { apiClient } from '../services/api';
+import type { ServiceResponse, Thought } from '../types';
 
 const AddThought = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const handleSubmit = () => {
-    // TODO: Implement add thought functionality
-    console.log('Adding thought:', { title, content });
+  const navigate = useNavigate();
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!isAuthenticated) {
+      setError('You must be logged in to add a thought.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
+
+      const payload = {
+        description: title,
+        textType: content,
+      };
+
+      const response = await apiClient.post<ServiceResponse<Thought>>( 'api/thoughts', payload, token );
+
+      if (response.isSuccess) {
+        navigate('/thoughts');
+      } else {
+        setError(response.errorMessage || 'Failed to add thought');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while adding the thought');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -15,6 +51,11 @@ const AddThought = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Add a New Thought
       </Typography>
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
       <Box component="form" sx={{ mt: 3 }}>
         <TextField
           fullWidth
@@ -36,8 +77,9 @@ const AddThought = () => {
           variant="contained"
           onClick={handleSubmit}
           sx={{ mt: 2 }}
+          disabled={loading}
         >
-          Add Thought
+          {loading ? <CircularProgress size={20} color="inherit" /> : 'Add Thought'}
         </Button>
       </Box>
     </Box>

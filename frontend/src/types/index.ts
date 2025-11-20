@@ -10,7 +10,7 @@ export interface Thought {
   textType: string;
 }
 
-export interface ApiResponse<T> {
+export interface ServiceResponse<T> {
   results: T[];
   isSuccess: boolean;
   errorMessage?: string;
