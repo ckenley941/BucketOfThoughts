@@ -4,3 +4,4 @@ export const auth0Config = {
   audience: import.meta.env.VITE_AUTH0_AUDIENCE || '',
 };
 
+

@@ -33,6 +33,7 @@ builder.Services.AddDbContext<BucketOfThoughtsDbContext>(options =>
             options.UseInMemoryDatabase("YourInMemoryDbName"));
 
 builder.Services.AddScoped<IThoughtService, ThoughtService>();
+builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
 
 var domain = builder.Configuration["AUTH0_DOMAIN"] ?? throw new ArgumentNullException("AUTH0_DOMAIN is missing");
 var audience = builder.Configuration["AUTH0_AUDIENCE"] ?? throw new ArgumentNullException("AUTH0_AUDIENCE is missing");

@@ -1,5 +1,7 @@
 ﻿using BucketOfThoughts.Api.Extensions;
 using BucketOfThoughts.Api.Objects;
+using BucketOfThoughts.Services.Constants;
+using BucketOfThoughts.Services.Objects;
 using System.Net;
 using System.Text.Json;
 
@@ -23,17 +25,11 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
     {
         var response = context.Response;
         response.ContentType = "application/json";
-
-        ErrorResponse? errorResponse = null;
-
-        switch (exception)
+        ErrorResponse? errorResponse = exception switch
         {
-            
-            default:
-                errorResponse = new ErrorResponse(HttpStatusCode.InternalServerError, "An unexpected error occurred. Please try again later.");
-                break;
-        }
-
+            UserForbiddenCustomException => new ErrorResponse(HttpStatusCode.Forbidden, exception.Message),
+            _ => new ErrorResponse(HttpStatusCode.InternalServerError, ApplicationServiceMessage.UnexpectedError),
+        };
         await context.Response.WriteErrorResponse(errorResponse);
     }
 }

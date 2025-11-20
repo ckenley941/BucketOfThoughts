@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { apiClient } from '../services/api';
-import type { ServiceResponse, Thought } from '../types';
+import type { Thought } from '../types';
 
 const AddThought = () => {
   const [title, setTitle] = useState('');
@@ -84,4 +84,5 @@ const AddThought = () => {
 };
 
 export default AddThought;
+
 

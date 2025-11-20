@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { apiClient } from '../services/api';
-import type { Thought, ServiceResponse } from '../types';
+import type { Thought } from '../types';
 
 const Thoughts = () => {
   const navigate = useNavigate();

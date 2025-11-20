@@ -1,4 +1,4 @@
-﻿namespace BucketOfThoughts.Services.Dtos;
+﻿namespace BucketOfThoughts.Services.Mappings;
 
 public class BaseDto
 {

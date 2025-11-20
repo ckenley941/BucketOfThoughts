@@ -9,7 +9,7 @@ public partial class ThoughtBucket : BaseUserDbTable
     [MaxLength(256)]
     public string Description { get; set; } = null!;
     public long? ParentId { get; set; }
-    public int? SortOrder { get; set; }
-    public bool? ShowOnDashboard { get; set; } = true;
+    public int SortOrder { get; set; }
+    public bool ShowOnDashboard { get; set; } = true;
     public ICollection<Thought> Thoughts { get; set; } = [];
 }
