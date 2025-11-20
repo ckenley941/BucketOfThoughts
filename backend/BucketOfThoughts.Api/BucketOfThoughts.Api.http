@@ -1,6 +1,6 @@
 @BucketOfThoughts.Api_HostAddress = http://localhost:5205
 
-GET {{BucketOfThoughts.Api_HostAddress}}/weatherforecast/
+GET {{BucketOfThoughts.Api_HostAddress}}/thoughts/
 Accept: application/json
 
 ###

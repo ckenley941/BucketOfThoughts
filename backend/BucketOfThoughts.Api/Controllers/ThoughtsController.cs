@@ -1,28 +1,28 @@
-﻿using BucketOfThoughts.Services;
-using BucketOfThoughts.Services.Models;
+﻿using BucketOfThoughts.Api.Objects;
+using BucketOfThoughts.Services;
+using BucketOfThoughts.Services.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BucketOfThoughts.Api.Controllers
+namespace BucketOfThoughts.Api.Controllers;
+
+/// <summary>
+/// Thoughts API controller
+/// </summary>
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ThoughtsController(IThoughtService thoughtService) : ControllerBase
 {
-    public class ThoughtsController
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<ThoughtDto>>> Get()
     {
-        private readonly ILogger<ThoughtsController> _logger;
-        private readonly IThoughtService _thoughtService;
-
-        public ThoughtsController(ILogger<ThoughtsController> logger, IThoughtService thoughtService)
+        var user = new CurrentUser(User);
+        var auth0Id = User.Auth0Id();
+        var apiResponse = new ApiResponse<ThoughtDto>
         {
-            _logger = logger;
-            _thoughtService  = thoughtService;
-        }
-
-        [HttpGet]
-        public async Task<ServiceResponse<ThoughtModel>> Get()
-        {
-            var apiResponse = new ServiceResponse<ThoughtModel>
-            {
-                Results = [await _thoughtService.GetByIdAsync(1)]
-            };
-            return apiResponse;
-        }
+            Results = await thoughtService.GetThoughts()
+        };
+        return Ok(apiResponse);
     }
 }

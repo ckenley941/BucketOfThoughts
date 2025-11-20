@@ -4,3 +4,15 @@ export interface User {
   name: string;
 }
 
+export interface Thought {
+  id: number;
+  description: string;
+  textType: string;
+}
+
+export interface ApiResponse<T> {
+  results: T[];
+  isSuccess: boolean;
+  errorMessage?: string;
+}
+

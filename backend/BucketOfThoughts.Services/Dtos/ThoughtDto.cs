@@ -1,6 +1,6 @@
-﻿namespace BucketOfThoughts.Services.Models;
+﻿namespace BucketOfThoughts.Services.Dtos;
 
-public partial class ThoughtModel : BaseModel
+public partial class ThoughtDto : BaseDto
 {
     public string Description { get; set; } = null!;
     public string TextType { get; set; } = "PlainText";

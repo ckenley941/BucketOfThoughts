@@ -1,16 +1,32 @@
-﻿using AutoMapper;
-using BucketOfThoughts.Data;
-using BucketOfThoughts.Data.Entities;
-using BucketOfThoughts.Services.Models;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using BucketOfThoughts.Data;
+using BucketOfThoughts.Services.Dtos;
+using Microsoft.EntityFrameworkCore;
 
-namespace BucketOfThoughts.Services
+namespace BucketOfThoughts.Services;
+
+public interface IThoughtService
 {
-    public interface IThoughtService : ICrudService<Thought, ThoughtModel>
-    { 
-    }
+    Task<IList<ThoughtDto>> GetThoughts();
+}
 
-    public class ThoughtService(BucketOfThoughtsDbContext dbContext, IMapper mapper, IDistributedCache cache) : BaseCRUDService<Thought, ThoughtModel>(dbContext, mapper, cache), IThoughtService
+public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtService
+{
+    public async Task<IList<ThoughtDto>> GetThoughts()
     {
+        var thoughts = new List<ThoughtDto>()
+        {
+            new ThoughtDto()
+            {
+                Id = 1,
+                Description = "testing"
+            }
+        };
+        //var thoughts = await dbContext.Thoughts.Select(t => new ThoughtDto
+        //{
+        //    Id = t.Id,
+        //    Description = t.Description,
+        //    TextType = t.TextType
+        //}).ToListAsync();
+        return thoughts;
     }
 }
