@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BucketOfThoughts.Api", "BucketOfThoughts.Api\BucketOfThoughts.Api.csproj", "{380FA8D8-54BA-4910-A9AF-C93D8A6A94A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BucketOfThoughts.Api", "BucketOfThoughts.Api\BucketOfThoughts.Api.csproj", "{380FA8D8-54BA-4910-A9AF-C93D8A6A94A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BucketOfThoughts.Services", "BucketOfThoughts.Services\BucketOfThoughts.Services.csproj", "{B1210CE9-8ACE-4363-9C4E-E2B8406E2913}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BucketOfThoughts.Data", "BucketOfThoughts.Data\BucketOfThoughts.Data.csproj", "{7C81BFD2-EF9A-48D1-A046-D15F9611095F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{380FA8D8-54BA-4910-A9AF-C93D8A6A94A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{380FA8D8-54BA-4910-A9AF-C93D8A6A94A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{380FA8D8-54BA-4910-A9AF-C93D8A6A94A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1210CE9-8ACE-4363-9C4E-E2B8406E2913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1210CE9-8ACE-4363-9C4E-E2B8406E2913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1210CE9-8ACE-4363-9C4E-E2B8406E2913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1210CE9-8ACE-4363-9C4E-E2B8406E2913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C81BFD2-EF9A-48D1-A046-D15F9611095F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C81BFD2-EF9A-48D1-A046-D15F9611095F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C81BFD2-EF9A-48D1-A046-D15F9611095F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C81BFD2-EF9A-48D1-A046-D15F9611095F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
