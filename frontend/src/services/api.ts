@@ -11,16 +11,10 @@ export const apiClient = {
       headers,
     });
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`API Error: ${error.errorMessage || "Server error"}`);
     }
-    const data = await response.json();
-    if (data.results === undefined) {
-      throw new Error('API Error: Invalid response format');
-    }
-    if (!data.isSuccess) {
-      throw new Error(data.errorMessage || 'API Error: Request failed');
-    }
-    return data;
+    return await response.json();
   },
   post: async <T>(endpoint: string, data: unknown, token?: string): Promise<T> => {
     const headers: HeadersInit = {
@@ -36,9 +30,10 @@ export const apiClient = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`API Error: ${error.errorMessage || "Server error"}`);
     }
-    return response.json();
+    return await response.json();
   },
   put: async <T>(endpoint: string, data: unknown, token?: string): Promise<T> => {
     const headers: HeadersInit = {
@@ -54,9 +49,10 @@ export const apiClient = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`API Error: ${error.errorMessage || "Server error"}`);
     }
-    return response.json();
+    return await response.json();
   },
   delete: async <T>(endpoint: string, token?: string): Promise<T> => {
     const headers: HeadersInit = {};
@@ -69,9 +65,10 @@ export const apiClient = {
       headers,
     });
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`API Error: ${error.errorMessage || "Server error"}`);
     }
-    return response.json();
+    return await response.json();
   },
 };
 

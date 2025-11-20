@@ -8,9 +8,10 @@ public partial class Thought : BaseUserDbTable
 {
     public Guid ThoughtGuid { get; set; } = Guid.NewGuid();
     public string Description { get; set; } = null!;
-    public int ThoughtBucketId { get; set; }
+    public long ThoughtBucketId { get; set; }
     [MaxLength(25)]
     public string TextType { get; set; } = "PlainText";
+    public bool IsDeleted { get; set; } = false;
     //public virtual ICollection<RelatedThought> RelatedThoughtThoughtId1Navigations { get; set; } = new List<RelatedThought>();
     //public virtual ICollection<RelatedThought> RelatedThoughtThoughtId2Navigations { get; set; } = new List<RelatedThought>();
     //public virtual ThoughtBucket ThoughtBucket { get; set; } = null!;

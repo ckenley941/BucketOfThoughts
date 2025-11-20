@@ -1,4 +1,5 @@
 using Auth0Net.DependencyInjection;
+using BucketOfThoughts.Api.Middleware;
 using BucketOfThoughts.Data;
 using BucketOfThoughts.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -103,6 +104,8 @@ app.UseHttpsRedirection();
 
 app.UseCors(corsPolicyName);
 app.UseAuthentication();
+app.UseMiddleware<UserSessionMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

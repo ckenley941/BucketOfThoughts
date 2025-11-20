@@ -9,10 +9,3 @@ export interface Thought {
   description: string;
   textType: string;
 }
-
-export interface ServiceResponse<T> {
-  results: T[];
-  isSuccess: boolean;
-  errorMessage?: string;
-}
-

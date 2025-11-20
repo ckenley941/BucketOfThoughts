@@ -32,12 +32,9 @@ const AddThought = () => {
         textType: content,
       };
 
-      const response = await apiClient.post<ServiceResponse<Thought>>( 'api/thoughts', payload, token );
-
-      if (response.isSuccess) {
+      const response = await apiClient.post<Thought>('api/thoughts', payload, token );
+      if (response.id > 0){
         navigate('/thoughts');
-      } else {
-        setError(response.errorMessage || 'Failed to add thought');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while adding the thought');

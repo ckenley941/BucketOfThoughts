@@ -1,4 +1,6 @@
-﻿namespace BucketOfThoughts.Services.Dtos;
+﻿using BucketOfThoughts.Data.Entities;
+
+namespace BucketOfThoughts.Services.Dtos;
 
 public partial class ThoughtDto : BaseDto
 {
@@ -11,26 +13,27 @@ public partial class ThoughtDto : BaseDto
 
 public static class ThoughtMapper
 {
-    public static ThoughtDto ToDto(this Data.Entities.Thought thought)
+    extension(ThoughtDto thoughtDto)
     {
-        if (thought == null) return null!;
-        return new ThoughtDto
+        public Thought MapInsert()
         {
-            Id = thought.Id,
-            Description = thought.Description,
-            TextType = thought.TextType
-        };
-    }
+            if (thoughtDto == null) throw new Exception($"MapInsert: {nameof(ThoughtDto)} null value passed to Dto mapper");
+            return new Thought
+            {
+                Id = thoughtDto.Id,
+                Description = thoughtDto.Description,
+                TextType = thoughtDto.TextType
+            };
+        }
 
-    public static Data.Entities.Thought ToEntity(this ThoughtDto thoughtDto)
-    {
-        if (thoughtDto == null) return null!;
-        return new Data.Entities.Thought
+        public Thought MapUpdate(Thought dbRow)
         {
-            Id = thoughtDto.Id,
-            Description = thoughtDto.Description,
-            TextType = thoughtDto.TextType
-        };
+            if (thoughtDto == null || dbRow == null) throw new Exception($"MapUpdate: {nameof(ThoughtDto)} null value passed to Dto mapper");
+            if (dbRow.Id != thoughtDto.Id) throw new Exception($"MapUpdate: {nameof(ThoughtDto)} Id mismatch passed to Dto mapper");
+            dbRow.Id = thoughtDto.Id;
+            dbRow.Description = thoughtDto.Description;
+            dbRow.TextType = thoughtDto.TextType;
+            return dbRow;
+        }
     }
-
 }

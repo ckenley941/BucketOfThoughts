@@ -38,16 +38,12 @@ const Thoughts = () => {
           },
         });
 
-        const response = await apiClient.get<ServiceResponse<Thought>>(
+        const response = await apiClient.get<Thought[]>(
           'api/thoughts',
           token
         );
-
-        if (response.isSuccess) {
-          setThoughts(response.results);
-        } else {
-          setError(response.errorMessage || 'Failed to fetch thoughts');
-        }
+        
+        setThoughts(response);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching thoughts');
       } finally {

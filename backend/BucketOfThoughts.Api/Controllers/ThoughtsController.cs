@@ -1,4 +1,5 @@
-﻿using BucketOfThoughts.Api.Objects;
+﻿using BucketOfThoughts.Api.Extensions;
+using BucketOfThoughts.Api.Objects;
 using BucketOfThoughts.Services;
 using BucketOfThoughts.Services.Dtos;
 using Microsoft.AspNetCore.Authorization;
@@ -15,28 +16,33 @@ namespace BucketOfThoughts.Api.Controllers;
 public class ThoughtsController(IThoughtService thoughtService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<ThoughtDto>>> Get()
+    public async Task<ActionResult<IEnumerable<ThoughtDto>>> Get()
     {
-        var user = new CurrentUser(User);
-        var auth0Id = User.Auth0Id();
-        var apiResponse = new ApiResponse<ThoughtDto>
-        {
-            Results = await thoughtService.GetThoughts()
-        };
-        return Ok(apiResponse);
+        var user = HttpContext.GetCurrentUser();
+        var thoughts = await thoughtService.GetThoughts();
+        return Ok(thoughts.Results);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ThoughtDto>>> Post(ThoughtDto thought)
+    public async Task<ActionResult<ThoughtDto>> Post(ThoughtDto thought)
     {
-        var user = new CurrentUser(User);
-        var auth0Id = User.Auth0Id();
+        var user = HttpContext.GetCurrentUser();
         var newThought = await thoughtService.AddThought(thought);
+        return Ok(newThought.Results.First());
+    }
 
-        var apiResponse = new ApiResponse<ThoughtDto>
-        {
-            Results = new List<ThoughtDto> { newThought }
-        };
-        return Ok(apiResponse);
+    [HttpPut]
+    public async Task<ActionResult<ThoughtDto>> Put(ThoughtDto thought)
+    {
+        var user = HttpContext.GetCurrentUser();
+        var newThought = await thoughtService.UpdateThought(thought);
+        return Ok(newThought.Results.First());
+    }
+
+    [HttpDelete]
+    public async Task<ActionResult<bool>> Delete(long id)
+    {
+        var success = await thoughtService.DeleteThought(id);
+        return Ok(success);
     }
 }
