@@ -5,6 +5,9 @@ import './App.css'
 import { useAuth0 } from '@auth0/auth0-react';
 //import { useCookies } from "react-cookie";
 import env from './env';
+import Navbar from './components/layout/navbar';
+import Sidebar from './components/layout/sidebar';
+import Grid from '@mui/material/Grid';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -29,6 +32,7 @@ function App() {
 
   return (
     <>
+    <Navbar></Navbar>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
