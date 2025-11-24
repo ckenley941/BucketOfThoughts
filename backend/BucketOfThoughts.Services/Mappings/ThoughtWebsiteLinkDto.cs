@@ -2,7 +2,7 @@ using BucketOfThoughts.Data.Entities;
 
 namespace BucketOfThoughts.Services.Mappings;
 
-public partial class ThoughtWebsiteLinkDto
+public partial class ThoughtWebsiteLinkDto : BaseDto
 {
     public long ThoughtId { get; set; }
     public long WebsiteLinkId { get; set; }

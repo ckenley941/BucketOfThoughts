@@ -14,6 +14,7 @@ const menuItems = [
   { text: 'Home', path: '/home' },
   { text: 'Add Thought', path: '/add-thought' },
   { text: 'Thoughts', path: '/thoughts' },
+  { text: 'Thought Buckets', path: '/thought-buckets' },
 ];
 
 const Sidebar = () => {
@@ -38,7 +39,7 @@ const Sidebar = () => {
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
-                selected={location.pathname === item.path}
+                selected={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
                 onClick={() => navigate(item.path)}
               >
                 <ListItemText primary={item.text} />
@@ -52,6 +53,7 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
 
 
 

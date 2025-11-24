@@ -8,6 +8,8 @@ import Home from '../pages/Home';
 import AddThought from '../pages/AddThought';
 import Thought from '../pages/Thought';
 import Thoughts from '../pages/Thoughts';
+import ThoughtBuckets from '../pages/ThoughtBuckets';
+import ThoughtBucketForm from '../pages/ThoughtBucketForm';
 import Login from '../pages/Login';
 import LoginCallback from '../pages/LoginCallback';
 import Logout from '../pages/Logout';
@@ -90,6 +92,36 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <MainLayout>
                 <Thoughts />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/thought-buckets"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ThoughtBuckets />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/thought-buckets/add"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ThoughtBucketForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/thought-buckets/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ThoughtBucketForm />
               </MainLayout>
             </ProtectedRoute>
           }

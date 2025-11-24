@@ -8,6 +8,14 @@ export interface Thought {
   id: number;
   description: string;
   textType: string;
+  showOnDashboard: boolean;
+  thoughtDate?: string;
+  bucket: {
+    id: number;
+    description?: string;
+  };
+  details?: ThoughtDetail[];
+  websiteLinks?: ThoughtWebsiteLink[];
 }
 
 export interface ThoughtBucket {

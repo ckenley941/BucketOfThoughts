@@ -10,6 +10,8 @@ public partial class Thought : BaseUserDbTable
     public virtual ThoughtBucket Bucket { get; set; } = null!;
     [MaxLength(25)]
     public string TextType { get; set; } = "PlainText";
+    public DateTime ThoughtDate { get; set; }
+    public bool ShowOnDashboard { get; set; }
     public bool IsDeleted { get; set; } = false;
     public ICollection<RelatedThought> ParentLinks { get; set; } = [];
     public ICollection<RelatedThought> RelatedThoughts { get; set; } = [];
