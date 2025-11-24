@@ -10,21 +10,19 @@ namespace BucketOfThoughts.Services;
 
 public interface IThoughtService
 {
-    public long LoginProfileId { get; set; }
     Task<ApplicationServiceResult<ThoughtDto>> GetThoughts();
     Task<ApplicationServiceResult<ThoughtDto>> GetThoughtById(long id);
     Task<ApplicationServiceResult<ThoughtDto>> AddThought(ThoughtDto thoughtDto);
     Task<ApplicationServiceResult<ThoughtDto>> UpdateThought(ThoughtDto thoughtDto);
-    Task<bool> DeleteThought(long id);
+    Task<BaseApplicationServiceResult> DeleteThought(long id);
 }
 
-public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtService
+public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider): IThoughtService
 {
-    public long LoginProfileId { get; set; }
     public async Task<ApplicationServiceResult<ThoughtDto>> GetThoughts()
     {
         var thoughts = await dbContext.Thoughts
-            .Where(t => t.LoginProfileId == LoginProfileId && !t.IsDeleted)
+            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted)
             .Select(SelectFullThought)
             .ToListAsync();
         return new ApplicationServiceResult<ThoughtDto>(thoughts);
@@ -32,8 +30,17 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtServic
 
     public async Task<ApplicationServiceResult<ThoughtDto>> GetThoughtById(long id)
     {
+        if (!await IsValidUser(id))
+        {
+            return new ApplicationServiceResult<ThoughtDto>
+            {
+                StatusCode = ServiceStatusCodes.UserForbidden,
+                ErrorMessage = ApplicationServiceMessages.UserForbidden
+            };
+        }
+
         var thought = await dbContext.Thoughts
-            .Where(t => t.Id == id && t.LoginProfileId == LoginProfileId && !t.IsDeleted )
+            .Where(t => t.Id == id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted )
             .Select(SelectFullThought)
             .SingleAsync();        
         return new ApplicationServiceResult<ThoughtDto>(thought);
@@ -41,7 +48,7 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtServic
 
     public async Task<ApplicationServiceResult<ThoughtDto>> AddThought(ThoughtDto thoughtDto)
     {
-        await Validate(thoughtDto.Id);
+        thoughtDto.LoginProfileId = userSessionProvider.LoginProfileId;
         var entity = thoughtDto.MapInsert();
         dbContext.Thoughts.Add(entity);
         await dbContext.SaveChangesAsync();
@@ -51,29 +58,41 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtServic
 
     public async Task<ApplicationServiceResult<ThoughtDto>> UpdateThought(ThoughtDto thoughtDto)
     {
-        await Validate(thoughtDto.Id);
-        var thoughtDbRow = await dbContext.Thoughts.SingleAsync(t => t.Id == thoughtDto.Id && t.LoginProfileId == LoginProfileId && !t.IsDeleted);
+        if (!await IsValidUser(thoughtDto.Id))
+        {
+            return new ApplicationServiceResult<ThoughtDto>
+            {
+                StatusCode = ServiceStatusCodes.UserForbidden,
+                ErrorMessage = ApplicationServiceMessages.UserForbidden
+            };
+        }
+        var thoughtDbRow = await dbContext.Thoughts.SingleAsync(t => t.Id == thoughtDto.Id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted);
         var entity = thoughtDto.MapUpdate(thoughtDbRow);
         dbContext.Thoughts.Update(entity);
         await dbContext.SaveChangesAsync();
         return new ApplicationServiceResult<ThoughtDto>(thoughtDto);
     }
 
-    public async Task<bool> DeleteThought(long id)
+    public async Task<BaseApplicationServiceResult> DeleteThought(long id)
     {
-        await Validate(id);
-        var thoughtDbRow = await dbContext.Thoughts.SingleAsync(t => t.Id == id && t.LoginProfileId == LoginProfileId && !t.IsDeleted);
+        if (!await IsValidUser(id))
+        {
+            return new BaseApplicationServiceResult
+            {
+                StatusCode = ServiceStatusCodes.UserForbidden,
+                ErrorMessage = ApplicationServiceMessages.UserForbidden
+            };
+        }
+        var thoughtDbRow = await dbContext.Thoughts.SingleAsync(t => t.Id == id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted);
         thoughtDbRow.IsDeleted = true;
         dbContext.Thoughts.Update(thoughtDbRow);
-        return await dbContext.SaveChangesAsync() > 0;
+        await dbContext.SaveChangesAsync();
+        return new BaseApplicationServiceResult();
     }
 
-    private async Task Validate(long thoughtId)
+    private async Task<bool> IsValidUser(long thoughtId)
     {
-        if (await dbContext.Thoughts.CountAsync(t => t.Id == thoughtId && t.LoginProfileId == LoginProfileId) == 0)
-        {
-            throw new UserForbiddenCustomException();
-        }
+        return await dbContext.Thoughts.CountAsync(t => t.Id == thoughtId && t.LoginProfileId == userSessionProvider.LoginProfileId) > 0;
     }
 
     private static Expression<Func<Thought, ThoughtDto>> SelectFullThought =
@@ -82,32 +101,33 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext): IThoughtServic
         Id = t.Id,
         Description = t.Description,
         TextType = t.TextType,
-        Bucket = new ThoughtBucketDto
-        {
-            Description = t.Bucket.Description,
-            Id = t.Bucket.Id
-        },
-        Details = t.Details
-            .Where(d => !d.IsDeleted)
-            .Select(d => new ThoughtDetailDto
-            {
-                Id = d.Id,
-                Description = d.Description,
-                SortOrder = d.SortOrder
-            })
-            .OrderBy(d => d.SortOrder)
-            .ToList(),
-        WebsiteLinks = t.WebsiteLinks
-            .Where(w => !w.IsDeleted)
-            .Select(w => new ThoughtWebsiteLinkDto
-            {
-                ThoughtId = w.ThoughtId,
-                WebsiteLinkId = w.WebsiteLinkId,
-                WebsiteUrl = w.WebsiteLink.WebsiteUrl,
-                Description = w.WebsiteLink.Description,
-                SortOrder = w.WebsiteLink.SortOrder
-            })
-            .OrderBy(w => w.SortOrder)
-            .ToList()
+        LoginProfileId = t.LoginProfileId,
+        //Bucket = new ThoughtBucketDto
+        //{
+        //    Description = t.Bucket.Description,
+        //    Id = t.Bucket.Id
+        //},
+        //Details = t.Details
+        //    .Where(d => !d.IsDeleted)
+        //    .Select(d => new ThoughtDetailDto
+        //    {
+        //        Id = d.Id,
+        //        Description = d.Description,
+        //        SortOrder = d.SortOrder
+        //    })
+        //    .OrderBy(d => d.SortOrder)
+        //    .ToList(),
+        //WebsiteLinks = t.WebsiteLinks
+        //    .Where(w => !w.IsDeleted)
+        //    .Select(w => new ThoughtWebsiteLinkDto
+        //    {
+        //        ThoughtId = w.ThoughtId,
+        //        WebsiteLinkId = w.WebsiteLinkId,
+        //        WebsiteUrl = w.WebsiteLink.WebsiteUrl,
+        //        Description = w.WebsiteLink.Description,
+        //        SortOrder = w.WebsiteLink.SortOrder
+        //    })
+        //    .OrderBy(w => w.SortOrder)
+        //    .ToList()
     };
 }

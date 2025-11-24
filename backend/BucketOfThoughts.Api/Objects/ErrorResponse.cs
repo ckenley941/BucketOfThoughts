@@ -1,17 +1,16 @@
-﻿using BucketOfThoughts.Api.Extensions;
-using System.Net;
+﻿using BucketOfThoughts.Services.Constants;
 
 namespace BucketOfThoughts.Api.Objects
 {
     public class ErrorResponse
     {
-        public ErrorResponse(HttpStatusCode statusCode, string errorMessage)
+        public ErrorResponse(ServiceStatusCodes errorCode, string? errorMessage)
         {
-            Status = statusCode.GetIntValue();
-            ErrorMessage = errorMessage;
+            ErrorCode = errorCode;
+            ErrorMessage = errorMessage ?? ApplicationServiceMessages.UnexpectedError;
         }
 
-        public int Status { get; set; }
-        public string ErrorMessage { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
+        public ServiceStatusCodes ErrorCode { get; set; }
     }
 }

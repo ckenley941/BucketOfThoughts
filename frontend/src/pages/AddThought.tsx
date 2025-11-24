@@ -2,14 +2,15 @@ import { Typography, Box, TextField, Button, Alert, CircularProgress } from '@mu
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { apiClient } from '../services/api';
+import { useApiClient } from '../services/api';
 import type { Thought } from '../types';
 
 const AddThought = () => {
+  const apiClient = useApiClient();
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const navigate = useNavigate();
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,17 +24,13 @@ const AddThought = () => {
 
     setLoading(true);
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
-
       const payload = {
         description: title,
         textType: content,
       };
 
-      const response = await apiClient.post<Thought>('api/thoughts', payload, token );
-      if (response.id > 0){
+      const response = await apiClient.post<Thought>('api/thoughts', payload );
+      if (response.data.id > 0){
         navigate('/thoughts');
       }
     } catch (err) {
@@ -84,5 +81,7 @@ const AddThought = () => {
 };
 
 export default AddThought;
+
+
 
 

@@ -1,4 +1,5 @@
 ﻿using BucketOfThoughts.Api.Extensions;
+using BucketOfThoughts.Api.Objects;
 using BucketOfThoughts.Services;
 using BucketOfThoughts.Services.Mappings;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace BucketOfThoughts.Api.Controllers;
 /// <summary>
 /// Thoughts API controller
 /// </summary>
-public class ThoughtsController(IThoughtService thoughtService) : BaseApiController
+public class ThoughtsController(IThoughtService thoughtService, IUserSessionProvider userSessionProvider) : BaseApiController(userSessionProvider)
 {
     /// <summary>
     /// Gets list of thoughts
@@ -19,9 +20,17 @@ public class ThoughtsController(IThoughtService thoughtService) : BaseApiControl
     [ProducesResponseType<IEnumerable<ThoughtDto>>((int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<ThoughtDto>>> Get()
     {
-        thoughtService.LoginProfileId = HttpContext.GetCurrentUser().LoginProfileId;
-        var thoughts = await thoughtService.GetThoughts();
-        return Ok(thoughts.Results);
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.GetThoughts();
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.Results);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
     }
 
     /// <summary>
@@ -31,12 +40,19 @@ public class ThoughtsController(IThoughtService thoughtService) : BaseApiControl
     /// <returns></returns>
     [HttpGet("{id}")]
     [ProducesResponseType<ThoughtDto>((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<ThoughtDto>> GetById(long id)
     {
-        var user = HttpContext.GetCurrentUser();
-        var result = await thoughtService.GetThoughtById(id);
-        return Ok(result.Results.First());
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.GetThoughtById(id);
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.Results);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
     }
 
     /// <summary>
@@ -48,9 +64,18 @@ public class ThoughtsController(IThoughtService thoughtService) : BaseApiControl
     [ProducesResponseType<ThoughtDto>((int)HttpStatusCode.OK)]
     public async Task<ActionResult<ThoughtDto>> Post(ThoughtDto thought)
     {
-        var user = HttpContext.GetCurrentUser();
-        var newThought = await thoughtService.AddThought(thought);
-        return Ok(newThought.Results.First());
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.AddThought(thought);
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.SingleResult);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
+        
     }
 
     /// <summary>
@@ -62,9 +87,17 @@ public class ThoughtsController(IThoughtService thoughtService) : BaseApiControl
     [ProducesResponseType<ThoughtDto>((int)HttpStatusCode.OK)]
     public async Task<ActionResult<ThoughtDto>> Put(ThoughtDto thought)
     {
-        var user = HttpContext.GetCurrentUser();
-        var newThought = await thoughtService.UpdateThought(thought);
-        return Ok(newThought.Results.First());
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.UpdateThought(thought);
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.SingleResult);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
     }
 
     /// <summary>
@@ -73,10 +106,19 @@ public class ThoughtsController(IThoughtService thoughtService) : BaseApiControl
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete]
-    [ProducesResponseType<bool>((int)HttpStatusCode.OK)]
-    public async Task<ActionResult<bool>> Delete(long id)
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<ActionResult> Delete(long id)
     {
-        var success = await thoughtService.DeleteThought(id);
-        return Ok(success);
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.DeleteThought(id);
+        if (serviceResult.IsSuccess)
+        {
+            return Ok();
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
     }
 }

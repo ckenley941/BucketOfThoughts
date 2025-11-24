@@ -11,10 +11,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { apiClient } from '../services/api';
+import { useApiClient } from '../services/api';
 import type { Thought } from '../types';
 
 const Thoughts = () => {
+  const apiClient = useApiClient();
   const navigate = useNavigate();
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   const [thoughts, setThoughts] = useState<Thought[]>([]);
@@ -31,19 +32,9 @@ const Thoughts = () => {
       try {
         setLoading(true);
         setError(null);
-
-        const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          },
-        });
-
-        const response = await apiClient.get<Thought[]>(
-          'api/thoughts',
-          token
-        );
+        const response = await apiClient.get<Thought[]>('api/thoughts');
         
-        setThoughts(response);
+        setThoughts(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching thoughts');
       } finally {

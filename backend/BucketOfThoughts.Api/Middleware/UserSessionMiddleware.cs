@@ -2,8 +2,9 @@
 using BucketOfThoughts.Api.Objects;
 using BucketOfThoughts.Data;
 using BucketOfThoughts.Data.Entities;
+using BucketOfThoughts.Services.Constants;
+using BucketOfThoughts.Services.Objects;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 using System.Security.Claims;
 
 namespace BucketOfThoughts.Api.Middleware
@@ -13,15 +14,16 @@ namespace BucketOfThoughts.Api.Middleware
         public async Task InvokeAsync(HttpContext context, BucketOfThoughtsDbContext dbContext)
         {
             var user = context.User;
-
+            var userSession = new CurrentUserSession() { Email = user.FindFirst("email")?.Value };
             if (user?.Identity?.IsAuthenticated == true)
             {
+                userSession.IsAuthenticated = true;
                 var auth0Id = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
                 if (string.IsNullOrEmpty(auth0Id))
                 {
-                    await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "Missing Auth0 ID in token."));
-                    return;
+                    userSession.Message = ApplicationServiceMessages.MissingAuth0IdToken;
+                    await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.MissingAuth0IdToken));
                 }
                 else
                 {
@@ -44,8 +46,8 @@ namespace BucketOfThoughts.Api.Middleware
                         }
                         else
                         {
-                            await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "User not found for the supplied Auth0 ID."));
-                            return;
+                            userSession.Message = ApplicationServiceMessages.UserNotFound;
+                            await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.UserNotFound));
                         }
                     }
 
@@ -54,19 +56,18 @@ namespace BucketOfThoughts.Api.Middleware
                         .Select(c => c.Value)
                         .ToList();
 
-                    var session = new CurrentUserSession
-                    {
-                        Auth0Id = auth0Id,
-                        LoginProfileId = loginProfile.Id,
-                        Email = user.FindFirst("email")?.Value,
-                        Roles = roles
-                    };
-                    context.Items["CurrentUser"] = session;
+                    userSession.Auth0Id = auth0Id;
+                    userSession.LoginProfileId = loginProfile?.Id ?? 0;
+                    userSession.Roles = roles;
+
                 }
+                context.Items["CurrentUser"] = userSession;
             }
             else
             {
-                await context.Response.WriteErrorResponse(new ErrorResponse(HttpStatusCode.Unauthorized, "User not authorized."));
+                userSession.IsAuthenticated = false;
+                userSession.Message = ApplicationServiceMessages.UserNotAuthorized;
+                await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.UserNotAuthorized));
                 return;
             }
 

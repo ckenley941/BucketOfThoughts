@@ -34,6 +34,7 @@ builder.Services.AddDbContext<BucketOfThoughtsDbContext>(options =>
 
 builder.Services.AddScoped<IThoughtService, ThoughtService>();
 builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
+builder.Services.AddScoped<IUserSessionProvider, UserSessionProvider>();
 
 var domain = builder.Configuration["AUTH0_DOMAIN"] ?? throw new ArgumentNullException("AUTH0_DOMAIN is missing");
 var audience = builder.Configuration["AUTH0_AUDIENCE"] ?? throw new ArgumentNullException("AUTH0_AUDIENCE is missing");

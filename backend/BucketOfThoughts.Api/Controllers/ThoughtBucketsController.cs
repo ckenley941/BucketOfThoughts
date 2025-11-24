@@ -9,7 +9,7 @@ namespace BucketOfThoughts.Api.Controllers;
 /// <summary>
 /// ThoughtBuckets API controller
 /// </summary>
-public class ThoughtBucketsController(IThoughtBucketService thoughtBucketService) : BaseApiController
+public class ThoughtBucketsController(IThoughtBucketService thoughtBucketService, IUserSessionProvider userSessionProvider) : BaseApiController(userSessionProvider)
 {
     /// <summary>
     /// Gets list of thought buckets
@@ -79,4 +79,6 @@ public class ThoughtBucketsController(IThoughtBucketService thoughtBucketService
         return Ok(success);
     }
 }
+
+
 

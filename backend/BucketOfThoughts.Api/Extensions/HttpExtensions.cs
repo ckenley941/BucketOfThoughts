@@ -1,4 +1,6 @@
 ﻿using BucketOfThoughts.Api.Objects;
+using BucketOfThoughts.Services.Constants;
+using BucketOfThoughts.Services.Objects;
 using System.Net;
 
 namespace BucketOfThoughts.Api.Extensions
@@ -23,10 +25,16 @@ namespace BucketOfThoughts.Api.Extensions
 
         extension(HttpResponse response)
         {
+
             public async Task WriteErrorResponse(ErrorResponse errorResponse)
             {
                 response.ContentType = "application/json";
-                response.StatusCode = errorResponse.Status;
+                response.StatusCode = errorResponse.ErrorCode switch
+                {
+                    ServiceStatusCodes.UserForbidden => HttpStatusCode.Forbidden.GetIntValue(),
+                    ServiceStatusCodes.Unauthorized => HttpStatusCode.Unauthorized.GetIntValue(),
+                    _ => HttpStatusCode.InternalServerError.GetIntValue()
+                };
                 await response.WriteAsJsonAsync(errorResponse);
             }
         }

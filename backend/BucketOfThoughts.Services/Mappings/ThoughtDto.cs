@@ -4,11 +4,12 @@ namespace BucketOfThoughts.Services.Mappings;
 
 public partial class ThoughtDto : BaseDto
 {
+    public long LoginProfileId { get; set; }
     public string Description { get; set; } = null!;
     public string TextType { get; set; } = "PlainText";
-    public virtual ThoughtBucketDto Bucket { get; set; } = null!;
-    public virtual ICollection<ThoughtDetailDto> Details { get; set; } = [];
-    public virtual ICollection<ThoughtWebsiteLinkDto> WebsiteLinks { get; set; } = [];
+    //public virtual ThoughtBucketDto Bucket { get; set; } = null!;
+    //public virtual ICollection<ThoughtDetailDto> Details { get; set; } = [];
+    //public virtual ICollection<ThoughtWebsiteLinkDto> WebsiteLinks { get; set; } = [];
 }
 
 public static class ThoughtMapper
@@ -21,7 +22,8 @@ public static class ThoughtMapper
             {
                 Id = thoughtDto.Id,
                 Description = thoughtDto.Description,
-                TextType = thoughtDto.TextType
+                TextType = thoughtDto.TextType,
+                LoginProfileId = thoughtDto.LoginProfileId
             };
         }
 

@@ -1,8 +1,11 @@
 ﻿namespace BucketOfThoughts.Services.Constants;
 
-public static class ApplicationServiceMessage
+public static class ApplicationServiceMessages
 {
+    public const string MissingAuth0IdToken = "Missing Auth0 ID in token.";
     public const string SingleResultNotFound = "Single Result not found.";
     public const string UnexpectedError = "An unexpected error occurred. Please try again later.";
     public const string UserForbidden = "You do not have permission to perform this action.";
+    public const string UserNotAuthorized = "User not authorized.";
+    public const string UserNotFound = "User not found for the supplied Auth0 ID.";
 }
