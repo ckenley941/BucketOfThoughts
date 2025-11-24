@@ -10,11 +10,14 @@ import {
   type SelectChangeEvent,
   Box,
   Button,
+  Menu,
+  Tooltip,
 } from '@mui/material';
-import { Search, Add } from '@mui/icons-material';
+import { Search, Add, List as ListIcon } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useThoughtBuckets } from '../hooks';
 
 interface NavbarProps {
   showSearch?: boolean;
@@ -23,8 +26,10 @@ interface NavbarProps {
 const Navbar = ({ showSearch = true }: NavbarProps) => {
   const [bucket, setBucket] = useState<string>('');
   const [searchText, setSearchText] = useState<string>('');
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
-  const { logout } = useAuth0();
+  const { logout, user } = useAuth0();
+  const { thoughtBuckets, loading: loadingBuckets } = useThoughtBuckets();
 
   const handleBucketChange = (event: SelectChangeEvent<string>) => {
     setBucket(event.target.value);
@@ -39,13 +44,39 @@ const Navbar = ({ showSearch = true }: NavbarProps) => {
     navigate('/add-thought');
   };
 
+  const handleThoughts = () => {
+    navigate('/thoughts');
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   const handleLogout = () => {
+    handleUserMenuClose();
     logout({
       logoutParams: {
         returnTo: window.location.origin + '/login',
       },
     });
   };
+
+  const handleBuckets = () => {
+    handleUserMenuClose();
+    navigate('/thought-buckets');
+  };
+
+  const handleAbout = () => {
+    handleUserMenuClose();
+    navigate('/about');
+  };
+
+  const userDisplayName = user?.name || user?.email || 'User';
+  const isUserMenuOpen = Boolean(anchorEl);
 
   return (
     <AppBar position="static">
@@ -59,6 +90,7 @@ const Navbar = ({ showSearch = true }: NavbarProps) => {
               value={bucket}
               onChange={handleBucketChange}
               displayEmpty
+              disabled={loadingBuckets}
               sx={{
                 minWidth: 120,
                 backgroundColor: 'white',
@@ -68,9 +100,13 @@ const Navbar = ({ showSearch = true }: NavbarProps) => {
               }}
             >
               <MenuItem value="">
-                <em>Buckets</em>
+                <em>All Buckets</em>
               </MenuItem>
-              {/* TODO: Add actual bucket options */}
+              {thoughtBuckets.map((thoughtBucket) => (
+                <MenuItem key={thoughtBucket.id} value={thoughtBucket.id.toString()}>
+                  {thoughtBucket.description || `Bucket #${thoughtBucket.id}`}
+                </MenuItem>
+              ))}
             </Select>
             <TextField
               placeholder="Search thoughts..."
@@ -100,12 +136,39 @@ const Navbar = ({ showSearch = true }: NavbarProps) => {
                 ),
               }}
             />
-            <IconButton color="inherit" onClick={handleAddThought}>
-              <Add />
-            </IconButton>
-            <Button color="inherit" onClick={handleLogout} sx={{ ml: 2 }}>
-              Logout
+            <Tooltip title="Add Thought">
+              <IconButton color="inherit" onClick={handleAddThought}>
+                <Add />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Thoughts">
+              <IconButton color="inherit" onClick={handleThoughts}>
+                <ListIcon />
+              </IconButton>
+            </Tooltip>
+            <Button
+              color="inherit"
+              onClick={handleUserMenuOpen}
+              sx={{ ml: 2 }}
+              aria-controls={isUserMenuOpen ? 'user-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen ? 'true' : undefined}
+            >
+              {userDisplayName}
             </Button>
+            <Menu
+              id="user-menu"
+              anchorEl={anchorEl}
+              open={isUserMenuOpen}
+              onClose={handleUserMenuClose}
+              MenuListProps={{
+                'aria-labelledby': 'user-menu-button',
+              }}
+            >
+              <MenuItem onClick={handleBuckets}>Buckets</MenuItem>
+              <MenuItem onClick={handleAbout}>About</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
           </Box>
         )}
       </Toolbar>

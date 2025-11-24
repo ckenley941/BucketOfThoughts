@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
+import { refreshThoughtBuckets } from '../hooks';
 import type { ThoughtBucket } from '../types';
 
 const ThoughtBucketForm = () => {
@@ -88,6 +89,9 @@ const ThoughtBucketForm = () => {
       } else {
         await apiClient.post<ThoughtBucket>('api/thoughtbuckets', payload);
       }
+
+      // Refresh buckets in navbar and other components
+      refreshThoughtBuckets();
 
       navigate('/thought-buckets');
     } catch (err) {

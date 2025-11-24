@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
+import { refreshThoughtBuckets } from '../hooks';
 import type { ThoughtBucket } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -58,6 +59,8 @@ const ThoughtBuckets = () => {
     try {
       await apiClient.delete(`api/thoughtbuckets/${id}`);
       setThoughtBuckets(thoughtBuckets.filter(tb => tb.id !== id));
+      // Refresh buckets in navbar
+      refreshThoughtBuckets();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while deleting the thought bucket');
     }
