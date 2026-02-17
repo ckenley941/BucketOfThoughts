@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
+import { refreshRecentThoughts } from '../hooks';
 import type { Thought, ThoughtBucket } from '../types';
 
 const AddThought = () => {
@@ -25,7 +26,7 @@ const AddThought = () => {
   const [textType, setTextType] = useState('PlainText');
   const [showOnDashboard, setShowOnDashboard] = useState(true);
   const [thoughtDate, setThoughtDate] = useState<string>('');
-  const [thoughtBucketId, setThoughtBucketId] = useState<number>(0);
+  const [selectedBucket, setSelectedBucket] = useState<ThoughtBucket | null>(null);
   const [thoughtBuckets, setThoughtBuckets] = useState<ThoughtBucket[]>([]);
   const [loadingBuckets, setLoadingBuckets] = useState(true);
 
@@ -44,8 +45,8 @@ const AddThought = () => {
         setLoadingBuckets(true);
         const response = await apiClient.get<ThoughtBucket[]>('api/thoughtbuckets');
         setThoughtBuckets(response.data);
-        if (response.data.length > 0) {
-          setThoughtBucketId((prev) => (prev === 0 ? response.data[0].id : prev));
+        if (response.data.length > 0 && !selectedBucket) {
+          setSelectedBucket(response.data[0]);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching thought buckets');
@@ -70,7 +71,7 @@ const AddThought = () => {
       return;
     }
 
-    if (!thoughtBucketId || thoughtBucketId <= 0) {
+    if (!selectedBucket) {
       setError('Please select a thought bucket.');
       return;
     }
@@ -83,7 +84,12 @@ const AddThought = () => {
         showOnDashboard: showOnDashboard,
         thoughtDate: thoughtDate || undefined,
         bucket: {
-          id: thoughtBucketId,
+          id: selectedBucket.id,
+          description: selectedBucket.description,
+          thoughtModuleId: selectedBucket.thoughtModuleId,
+          parentId: selectedBucket.parentId,
+          sortOrder: selectedBucket.sortOrder,
+          showOnDashboard: selectedBucket.showOnDashboard,
         },
         details: [],
         websiteLinks: [],
@@ -91,6 +97,8 @@ const AddThought = () => {
 
       const response = await apiClient.post<Thought>('api/thoughts', payload);
       if (response.data.id > 0) {
+        // Refresh recent thoughts in sidebar
+        refreshRecentThoughts();
         navigate('/thoughts');
       }
     } catch (err) {
@@ -124,9 +132,13 @@ const AddThought = () => {
         <FormControl fullWidth margin="normal" required>
           <InputLabel>Thought Bucket</InputLabel>
           <Select
-            value={thoughtBucketId}
+            value={selectedBucket?.id || ''}
             label="Thought Bucket"
-            onChange={(e) => setThoughtBucketId(e.target.value as number)}
+            onChange={(e) => {
+              const bucketId = e.target.value as number;
+              const bucket = thoughtBuckets.find(b => b.id === bucketId);
+              setSelectedBucket(bucket || null);
+            }}
             disabled={loadingBuckets}
           >
             {loadingBuckets ? (

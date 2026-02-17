@@ -9,9 +9,9 @@ public partial class ThoughtDto : BaseDto
     public string TextType { get; set; } = "PlainText";
     public bool ShowOnDashboard { get; set; } = true;
     public DateTime? ThoughtDate { get; set; }
-    public virtual ThoughtBucketDto Bucket { get; set; } = null!;
-    public virtual ICollection<ThoughtDetailDto> Details { get; set; } = [];
-    public virtual ICollection<ThoughtWebsiteLinkDto> WebsiteLinks { get; set; } = [];
+    //public virtual ThoughtBucketDto Bucket { get; set; } = null!;
+    //public virtual ICollection<ThoughtDetailDto> Details { get; set; } = [];
+    //public virtual ICollection<ThoughtWebsiteLinkDto> WebsiteLinks { get; set; } = [];
 }
 
 public static class ThoughtMapper
@@ -28,7 +28,7 @@ public static class ThoughtMapper
                 ShowOnDashboard = thoughtDto.ShowOnDashboard,
                 LoginProfileId = thoughtDto.LoginProfileId,
                 ThoughtDate = thoughtDto.ThoughtDate ?? DateTime.UtcNow,
-                ThoughtBucketId = thoughtDto.Bucket.Id
+                ThoughtBucketId = 1//thoughtDto.Bucket.Id
             };
         }
 
@@ -40,7 +40,7 @@ public static class ThoughtMapper
             dbRow.TextType = thoughtDto.TextType;
             dbRow.ThoughtDate = thoughtDto.ThoughtDate ?? dbRow.ThoughtDate;
             dbRow.ShowOnDashboard  = thoughtDto.ShowOnDashboard;
-            dbRow.ThoughtBucketId = thoughtDto.Bucket.Id;
+            dbRow.ThoughtBucketId = 1;//thoughtDto.Bucket.Id;
             //TODO figure out update for details and website links - probably do separtely?
             return dbRow;
         }

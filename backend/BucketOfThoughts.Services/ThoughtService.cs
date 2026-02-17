@@ -15,6 +15,7 @@ public interface IThoughtService
     Task<ApplicationServiceResult<ThoughtDto>> AddThought(ThoughtDto thoughtDto);
     Task<ApplicationServiceResult<ThoughtDto>> UpdateThought(ThoughtDto thoughtDto);
     Task<BaseApplicationServiceResult> DeleteThought(long id);
+    Task<ApplicationServiceResult<RecentThoughtDto>> GetRecentThoughts();
 }
 
 public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider): IThoughtService
@@ -90,6 +91,22 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         return new BaseApplicationServiceResult();
     }
 
+    public async Task<ApplicationServiceResult<RecentThoughtDto>> GetRecentThoughts()
+    {
+        var recentThoughts = await dbContext.Thoughts
+            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted)
+            .OrderByDescending(t => t.CreatedDateTime)
+            .Take(10)
+            .Select(t => new RecentThoughtDto
+            {
+                Id = t.Id,
+                Description = t.Description,
+                Bucket = t.Bucket.Description
+            })
+            .ToListAsync();
+        return new ApplicationServiceResult<RecentThoughtDto>(recentThoughts);
+    }
+
     private async Task<bool> IsValidUser(long thoughtId)
     {
         return await dbContext.Thoughts.CountAsync(t => t.Id == thoughtId && t.LoginProfileId == userSessionProvider.LoginProfileId) > 0;
@@ -102,32 +119,32 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         Description = t.Description,
         TextType = t.TextType,
         LoginProfileId = t.LoginProfileId,
-        Bucket = new ThoughtBucketDto
-        {
-            Description = t.Bucket.Description,
-            Id = t.Bucket.Id
-        },
-        Details = t.Details
-            .Where(d => !d.IsDeleted)
-            .Select(d => new ThoughtDetailDto
-            {
-                Id = d.Id,
-                Description = d.Description,
-                SortOrder = d.SortOrder
-            })
-            .OrderBy(d => d.SortOrder)
-            .ToList(),
-        WebsiteLinks = t.WebsiteLinks
-            .Where(w => !w.IsDeleted)
-            .Select(w => new ThoughtWebsiteLinkDto
-            {
-                ThoughtId = w.ThoughtId,
-                WebsiteLinkId = w.WebsiteLinkId,
-                WebsiteUrl = w.WebsiteLink.WebsiteUrl,
-                Description = w.WebsiteLink.Description,
-                SortOrder = w.WebsiteLink.SortOrder
-            })
-            .OrderBy(w => w.SortOrder)
-            .ToList()
+        //Bucket = new ThoughtBucketDto
+        //{
+        //    Description = t.Bucket.Description,
+        //    Id = t.Bucket.Id
+        //},
+        //Details = t.Details
+        //    .Where(d => !d.IsDeleted)
+        //    .Select(d => new ThoughtDetailDto
+        //    {
+        //        Id = d.Id,
+        //        Description = d.Description,
+        //        SortOrder = d.SortOrder
+        //    })
+        //    .OrderBy(d => d.SortOrder)
+        //    .ToList(),
+        //WebsiteLinks = t.WebsiteLinks
+        //    .Where(w => !w.IsDeleted)
+        //    .Select(w => new ThoughtWebsiteLinkDto
+        //    {
+        //        ThoughtId = w.ThoughtId,
+        //        WebsiteLinkId = w.WebsiteLinkId,
+        //        WebsiteUrl = w.WebsiteLink.WebsiteUrl,
+        //        Description = w.WebsiteLink.Description,
+        //        SortOrder = w.WebsiteLink.SortOrder
+        //    })
+        //    .OrderBy(w => w.SortOrder)
+        //    .ToList()
     };
 }

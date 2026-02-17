@@ -34,6 +34,27 @@ public class ThoughtsController(IThoughtService thoughtService, IUserSessionProv
     }
 
     /// <summary>
+    /// Gets recent thoughts
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("recent")]
+    [ProducesResponseType<IEnumerable<RecentThoughtDto>>((int)HttpStatusCode.OK)]
+    public async Task<ActionResult<IEnumerable<RecentThoughtDto>>> GetRecent()
+    {
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.GetRecentThoughts();
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.Results);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
+    }
+
+    /// <summary>
     /// Gets thought by Id
     /// </summary>
     /// <param name="id"></param>

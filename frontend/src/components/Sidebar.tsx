@@ -5,21 +5,59 @@ import {
   ListItemButton,
   ListItemText,
   Box,
+  Typography,
+  CircularProgress,
+  Divider,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useApiClient } from '../services/api';
+import type { RecentThought } from '../types';
 
 const drawerWidth = 240;
-
-const menuItems = [
-  { text: 'Home', path: '/home' },
-  { text: 'Add Thought', path: '/add-thought' },
-  { text: 'Thoughts', path: '/thoughts' },
-  { text: 'Thought Buckets', path: '/thought-buckets' },
-];
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const apiClient = useApiClient();
+  const { isAuthenticated } = useAuth0();
+  const [recentThoughts, setRecentThoughts] = useState<RecentThought[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRecentThoughts = async () => {
+      if (!isAuthenticated) {
+        setRecentThoughts([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await apiClient.get<RecentThought[]>('api/thoughts/recent');
+        setRecentThoughts(response.data);
+      } catch (err) {
+        console.error('Error fetching recent thoughts:', err);
+        setRecentThoughts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentThoughts();
+
+    // Listen for refresh events
+    const handleRefresh = () => {
+      fetchRecentThoughts();
+    };
+
+    window.addEventListener('recentThoughts:refresh', handleRefresh);
+
+    return () => {
+      window.removeEventListener('recentThoughts:refresh', handleRefresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   return (
     <Drawer
@@ -34,19 +72,62 @@ const Sidebar = () => {
         },
       }}
     >
-      <Box sx={{ overflow: 'auto' }}>
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
-                onClick={() => navigate(item.path)}
-              >
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+      <Box sx={{ overflow: 'auto', p: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2, px: 2 }}>
+          Recent Thoughts
+        </Typography>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : recentThoughts.length === 0 ? (
+          <Typography variant="body2" sx={{ px: 2, color: 'text.secondary' }}>
+            No recent thoughts
+          </Typography>
+        ) : (
+          <List>
+            {recentThoughts.map((thought, index) => (
+              <Box key={thought.id}>
+                {index > 0 && <Divider />}
+                <ListItem disablePadding>
+                  <ListItemButton
+                    selected={location.pathname === `/thought/${thought.id}`}
+                    onClick={() => navigate(`/thought/${thought.id}`)}
+                    sx={{
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      py: 1.5,
+                      '& .MuiListItemText-primary': {
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        width: '100%',
+                      },
+                      '& .MuiListItemText-secondary': {
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        width: '100%',
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={thought.description || `Thought #${thought.id}`}
+                      secondary={thought.bucket || 'No bucket'}
+                      primaryTypographyProps={{
+                        variant: 'body2',
+                      }}
+                      secondaryTypographyProps={{
+                        variant: 'caption',
+                        color: 'text.secondary',
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </Box>
+            ))}
+          </List>
+        )}
       </Box>
     </Drawer>
   );

@@ -10,12 +10,15 @@ export interface Thought {
   textType: string;
   showOnDashboard: boolean;
   thoughtDate?: string;
-  bucket: {
-    id: number;
-    description?: string;
-  };
+  bucket: ThoughtBucket;
   details?: ThoughtDetail[];
   websiteLinks?: ThoughtWebsiteLink[];
+}
+
+export interface RecentThought {
+  id: number;
+  description: string;
+  bucket: string;
 }
 
 export interface ThoughtBucket {
