@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Linq;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,8 +30,11 @@ builder.Services.AddCors(
     }
 );
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<BucketOfThoughtsDbContext>(options =>
-            options.UseInMemoryDatabase("YourInMemoryDbName"));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IThoughtService, ThoughtService>();
 builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
@@ -99,6 +103,40 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    // Apply database migrations
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            var context = services.GetRequiredService<BucketOfThoughtsDbContext>();
+
+            // Apply pending migrations (this will create the database if it doesn't exist)
+            var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+            if (pendingMigrations.Any())
+            {
+                logger.LogInformation($"Applying {pendingMigrations.Count} pending migration(s): {string.Join(", ", pendingMigrations)}");
+            }
+            else
+            {
+                logger.LogInformation("No pending migrations.");
+            }
+
+            context.Database.Migrate();
+            logger.LogInformation("Database migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while migrating the database. Error: {ErrorMessage}", ex.Message);
+            // Re-throw in development to see the error
+            if (app.Environment.IsDevelopment())
+            {
+                throw;
+            }
+        }
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }

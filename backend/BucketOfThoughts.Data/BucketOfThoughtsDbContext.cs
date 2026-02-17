@@ -21,6 +21,13 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Add unique index on Auth0Id to prevent duplicate logins
+        modelBuilder.Entity<LoginProfile>(entity =>
+        {
+            entity.HasIndex(e => e.Auth0Id)
+                .IsUnique();
+        });
+
         modelBuilder.Entity<RelatedThought>(builder =>
         {
             builder
@@ -36,86 +43,64 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
              .OnDelete(DeleteBehavior.Restrict);
         });
 
-        //    modelBuilder.Entity<Thought>(entity =>
-        //    {
-        //        //entity.HasKey(e => e.Id);
+        // Configure Thought relationships to avoid cascade cycle
+        modelBuilder.Entity<Thought>(entity =>
+        {
+            entity
+                .HasOne(t => t.Bucket)
+                .WithMany(b => b.Thoughts)
+                .HasForeignKey(t => t.ThoughtBucketId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-        //        entity.ToTable("Thought");
+            entity
+                .HasOne(t => t.LoginProfile)
+                .WithMany(lp => lp.Thoughts)
+                .HasForeignKey(t => t.LoginProfileId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        //        //entity.Property(e => e.CreatedDateTime)
-        //        //    .HasDefaultValueSql("(getutcdate())");
+        // Configure ThoughtBucket relationships
+        modelBuilder.Entity<ThoughtBucket>(entity =>
+        {
+            entity
+                .HasOne(tb => tb.LoginProfile)
+                .WithMany(lp => lp.ThoughtBuckets)
+                .HasForeignKey(tb => tb.LoginProfileId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-        //        //entity.Property(e => e.ThoughtGuid)
-        //        //    .HasDefaultValueSql("(newid())");
+            entity
+                .HasOne(tb => tb.ThoughtModule)
+                .WithMany(tm => tm.ThoughtBuckets)
+                .HasForeignKey(tb => tb.ThoughtModuleId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        //        //entity.Property(e => e.TextType)
-        //        //   .HasDefaultValueSql("'PlainText'")
-        //        //   .HasMaxLength(25);
+        // Configure ThoughtDetail relationship
+        modelBuilder.Entity<ThoughtDetail>(entity =>
+        {
+            entity
+                .HasOne(td => td.Thought)
+                .WithMany(t => t.Details)
+                .HasForeignKey(td => td.ThoughtId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        //        //entity.HasOne(d => d.ThoughtBucket).WithMany(p => p.Thoughts)
-        //        //    .HasForeignKey(d => d.ThoughtBucketId)
-        //        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //        //    .HasConstraintName("FK_Thought_ThoughtBucket");
-        //    });
-
-        //    modelBuilder.Entity<ThoughtBucket>(entity =>
-        //    {
-        //        //entity.HasKey(e => e.Id);
-
-        //        entity.ToTable("ThoughtBucket");
-
-        //        //entity.Property(e => e.CreatedDateTime)
-        //        //    .HasDefaultValueSql("(getutcdate())");
-
-        //        //entity.Property(e => e.ShowOnDashboard)
-        //        //   .HasDefaultValue(true);
-
-
-        //        //entity.HasOne(d => d.ThoughtModule).WithMany(p => p.ThoughtBuckets)
-        //        //    .HasForeignKey(d => d.ThoughtModuleId)
-        //        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //        //    .HasConstraintName("FK_ThoughtBucket_ThoughtModule");
-        //    });
-
-        //    modelBuilder.Entity<ThoughtDetail>(entity =>
-        //    {
-        //        //entity.HasKey(e => e.Id);
-
-        //        entity.ToTable("ThoughtDetail");
-
-        //        //entity.Property(e => e.CreatedDateTime)
-        //        //    .HasDefaultValueSql("(getutcdate())");
-
-        //        //entity.HasOne(d => d.Thought).WithMany(p => p.ThoughtDetails)
-        //        //    .HasForeignKey(d => d.ThoughtId)
-        //        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //        //    .HasConstraintName("FK_ThoughtDetail_Thought");
-        //    });
-
-        //    modelBuilder.Entity<ThoughtModule>(entity =>
-        //    {
-        //       // entity.HasKey(e => e.Id);
-
-        //        entity.ToTable("ThoughtModule");
-
-        //        //entity.Property(e => e.CreatedDateTime)
-        //        //    .HasDefaultValueSql("(getutcdate())");
-        //    });
-
+        // Configure ThoughtWebsiteLink relationships
         modelBuilder.Entity<ThoughtWebsiteLink>(entity =>
         {
             entity.HasKey(e => new { e.ThoughtId, e.WebsiteLinkId });
 
+            entity
+                .HasOne(twl => twl.Thought)
+                .WithMany(t => t.WebsiteLinks)
+                .HasForeignKey(twl => twl.ThoughtId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            //entity.HasOne(d => d.Thought).WithMany(p => p.ThoughtWebsiteLinks)
-            //    .HasForeignKey(d => d.ThoughtId)
-            //    .OnDelete(DeleteBehavior.ClientSetNull)
-            //    .HasConstraintName("FK_ThoughtWebsiteLink_Thought");
-
-            //entity.HasOne(d => d.WebsiteLink).WithMany(p => p.ThoughtWebsiteLinks)
-            //    .HasForeignKey(d => d.WebsiteLinkId)
-            //    .OnDelete(DeleteBehavior.ClientSetNull)
-            //    .HasConstraintName("FK_ThoughtWebsiteLink_WebsiteLink");
+            entity
+                .HasOne(twl => twl.WebsiteLink)
+                .WithMany(wl => wl.ThoughtWebsiteLinks)
+                .HasForeignKey(twl => twl.WebsiteLinkId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         //    modelBuilder.Entity<WebsiteLink>(entity =>

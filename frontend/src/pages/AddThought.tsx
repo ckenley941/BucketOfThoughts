@@ -167,14 +167,14 @@ const AddThought = () => {
         <TextField
           fullWidth
           label="Thought Date"
-          type="datetime-local"
+          type="date"
           value={thoughtDate}
           onChange={(e) => setThoughtDate(e.target.value)}
           margin="normal"
           InputLabelProps={{
             shrink: true,
           }}
-          helperText="Leave empty to use current date/time"
+          helperText="Leave empty to use current date"
         />
         <FormControlLabel
           control={

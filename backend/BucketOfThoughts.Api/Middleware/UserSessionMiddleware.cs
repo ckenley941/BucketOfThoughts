@@ -13,6 +13,20 @@ namespace BucketOfThoughts.Api.Middleware
     {
         public async Task InvokeAsync(HttpContext context, BucketOfThoughtsDbContext dbContext)
         {
+            // Skip OPTIONS requests (CORS preflight)
+            if (context.Request.Method == "OPTIONS")
+            {
+                await next(context);
+                return;
+            }
+
+            // Check if user session is already set to avoid redundant processing
+            if (context.Items.ContainsKey("CurrentUser"))
+            {
+                await next(context);
+                return;
+            }
+
             var user = context.User;
             var userSession = new CurrentUserSession() { Email = user.FindFirst("email")?.Value };
             if (user?.Identity?.IsAuthenticated == true)
@@ -24,17 +38,19 @@ namespace BucketOfThoughts.Api.Middleware
                 {
                     userSession.Message = ApplicationServiceMessages.MissingAuth0IdToken;
                     await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.MissingAuth0IdToken));
+                    return;
                 }
-                else
-                {
-                    var loginProfile = await dbContext.LoginProfiles
-                        .Where(lp => lp.Auth0Id == auth0Id)
-                        .SingleOrDefaultAsync();
 
-                    var autoSave = true;
-                    if (loginProfile == null)
+                var loginProfile = await dbContext.LoginProfiles
+                    .Where(lp => lp.Auth0Id == auth0Id)
+                    .SingleOrDefaultAsync();
+
+                var autoSave = true;
+                if (loginProfile == null)
+                {
+                    if (autoSave)
                     {
-                        if (autoSave)
+                        try
                         {
                             loginProfile = new LoginProfile
                             {
@@ -44,23 +60,49 @@ namespace BucketOfThoughts.Api.Middleware
                             dbContext.LoginProfiles.Add(loginProfile);
                             await dbContext.SaveChangesAsync();
                         }
-                        else
+                        catch (DbUpdateException ex)
                         {
-                            userSession.Message = ApplicationServiceMessages.UserNotFound;
-                            await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.UserNotFound));
+                            // Handle race condition: if another request created the profile concurrently,
+                            // retry fetching it
+                            if (ex.InnerException?.Message?.Contains("duplicate key") == true ||
+                                ex.InnerException?.Message?.Contains("UNIQUE constraint") == true ||
+                                ex.InnerException?.Message?.Contains("Cannot insert duplicate key") == true)
+                            {
+                                // Retry fetching the profile that was just created by another request
+                                loginProfile = await dbContext.LoginProfiles
+                                    .Where(lp => lp.Auth0Id == auth0Id)
+                                    .SingleOrDefaultAsync();
+                                
+                                if (loginProfile == null)
+                                {
+                                    userSession.Message = ApplicationServiceMessages.UserNotFound;
+                                    await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.UserNotFound));
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                throw;
+                            }
                         }
                     }
-
-                    var roles = user.Claims
-                        .Where(c => c.Type == "permissions" || c.Type == "role" || c.Type == ClaimTypes.Role)
-                        .Select(c => c.Value)
-                        .ToList();
-
-                    userSession.Auth0Id = auth0Id;
-                    userSession.LoginProfileId = loginProfile?.Id ?? 0;
-                    userSession.Roles = roles;
-
+                    else
+                    {
+                        userSession.Message = ApplicationServiceMessages.UserNotFound;
+                        await context.Response.WriteErrorResponse(new ErrorResponse(ServiceStatusCodes.Unauthorized, ApplicationServiceMessages.UserNotFound));
+                        return;
+                    }
                 }
+
+                var roles = user.Claims
+                    .Where(c => c.Type == "permissions" || c.Type == "role" || c.Type == ClaimTypes.Role)
+                    .Select(c => c.Value)
+                    .ToList();
+
+                userSession.Auth0Id = auth0Id;
+                userSession.LoginProfileId = loginProfile?.Id ?? 0;
+                userSession.Roles = roles;
+
                 context.Items["CurrentUser"] = userSession;
             }
             else

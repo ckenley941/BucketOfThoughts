@@ -53,8 +53,14 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         var entity = thoughtDto.MapInsert();
         dbContext.Thoughts.Add(entity);
         await dbContext.SaveChangesAsync();
-        thoughtDto.Id = entity.Id;
-        return new ApplicationServiceResult<ThoughtDto>(thoughtDto);
+        
+        // Reload the thought with the bucket to return complete data
+        var savedThought = await dbContext.Thoughts
+            .Where(t => t.Id == entity.Id && t.LoginProfileId == userSessionProvider.LoginProfileId)
+            .Select(SelectFullThought)
+            .SingleAsync();
+        
+        return new ApplicationServiceResult<ThoughtDto>(savedThought);
     }
 
     public async Task<ApplicationServiceResult<ThoughtDto>> UpdateThought(ThoughtDto thoughtDto)
@@ -71,7 +77,14 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         var entity = thoughtDto.MapUpdate(thoughtDbRow);
         dbContext.Thoughts.Update(entity);
         await dbContext.SaveChangesAsync();
-        return new ApplicationServiceResult<ThoughtDto>(thoughtDto);
+        
+        // Reload the thought with the bucket to return complete data
+        var updatedThought = await dbContext.Thoughts
+            .Where(t => t.Id == thoughtDto.Id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted)
+            .Select(SelectFullThought)
+            .SingleAsync();
+        
+        return new ApplicationServiceResult<ThoughtDto>(updatedThought);
     }
 
     public async Task<BaseApplicationServiceResult> DeleteThought(long id)
@@ -119,11 +132,17 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         Description = t.Description,
         TextType = t.TextType,
         LoginProfileId = t.LoginProfileId,
-        //Bucket = new ThoughtBucketDto
-        //{
-        //    Description = t.Bucket.Description,
-        //    Id = t.Bucket.Id
-        //},
+        ShowOnDashboard = t.ShowOnDashboard,
+        ThoughtDate = t.ThoughtDate,
+        Bucket = new ThoughtBucketDto
+        {
+            Id = t.Bucket.Id,
+            Description = t.Bucket.Description,
+            ThoughtModuleId = t.Bucket.ThoughtModuleId,
+            ParentId = t.Bucket.ParentId,
+            SortOrder = t.Bucket.SortOrder,
+            ShowOnDashboard = t.Bucket.ShowOnDashboard
+        },
         //Details = t.Details
         //    .Where(d => !d.IsDeleted)
         //    .Select(d => new ThoughtDetailDto
