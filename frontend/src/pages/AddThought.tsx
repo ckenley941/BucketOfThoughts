@@ -20,13 +20,13 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import { refreshRecentThoughts } from '../hooks';
 import type { Thought, ThoughtBucket } from '../types';
-import ThoughtDetails from './ThoughtDetails';
+import ThoughtDetails, { type ThoughtDetailsHandle } from './ThoughtDetails';
 
 const steps = ['Thought', 'Details', 'Website Links', 'Related Thoughts'];
 
@@ -49,7 +49,10 @@ const AddThought = () => {
 
   const { isAuthenticated } = useAuth0();
   const [loading, setLoading] = useState(false);
+  const [loadingThought, setLoadingThought] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const thoughtDetailsRef = useRef<ThoughtDetailsHandle>(null);
+  const loadedThoughtIdRef = useRef<number | null>(null);
 
   // Update step from URL params
   useEffect(() => {
@@ -88,10 +91,82 @@ const AddThought = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
+  // Load thought data when thoughtId > 0 and on step 0
+  useEffect(() => {
+    const loadThought = async () => {
+      if (!isAuthenticated || !thoughtId || thoughtId <= 0 || activeStep !== 0) {
+        // Reset form if no thoughtId or not on step 0
+        if (!thoughtId || thoughtId <= 0) {
+          setDescription('');
+          setTextType('PlainText');
+          setShowOnDashboard(true);
+          setThoughtDate('');
+          setSelectedBucket(null);
+          loadedThoughtIdRef.current = null;
+        }
+        return;
+      }
+
+      // Skip if we've already loaded this thought
+      if (loadedThoughtIdRef.current === thoughtId) {
+        return;
+      }
+
+      // Wait for buckets to load first (but don't block if buckets are already loaded)
+      if (loadingBuckets) {
+        return;
+      }
+
+      try {
+        setLoadingThought(true);
+        setError(null);
+        const response = await apiClient.get<Thought>(`api/thoughts/${thoughtId}`);
+        const thoughtData = Array.isArray(response.data) ? response.data[0] : response.data;
+        
+        if (thoughtData) {
+          setDescription(thoughtData.description || '');
+          setTextType(thoughtData.textType || 'PlainText');
+          setShowOnDashboard(thoughtData.showOnDashboard ?? true);
+          
+          // Set thought date - format for date input (YYYY-MM-DD)
+          if (thoughtData.thoughtDate) {
+            const date = new Date(thoughtData.thoughtDate);
+            const formattedDate = date.toISOString().split('T')[0];
+            setThoughtDate(formattedDate);
+          } else {
+            setThoughtDate('');
+          }
+
+          // Set selected bucket
+          if (thoughtData.bucket) {
+            // Find the bucket in the list or set it directly
+            const bucket = thoughtBuckets.find(b => b.id === thoughtData.bucket.id);
+            if (bucket) {
+              setSelectedBucket(bucket);
+            } else {
+              // If bucket not found in list, use the one from the thought
+              setSelectedBucket(thoughtData.bucket);
+            }
+          }
+          
+          // Mark this thought as loaded
+          loadedThoughtIdRef.current = thoughtId;
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred while loading the thought');
+      } finally {
+        setLoadingThought(false);
+      }
+    };
+
+    loadThought();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, thoughtId, activeStep, apiClient, thoughtBuckets, loadingBuckets]);
+
   const handleSubmit = async () => {
     setError(null);
     if (!isAuthenticated) {
-      setError('You must be logged in to add a thought.');
+      setError('You must be logged in to save a thought.');
       return;
     }
 
@@ -124,8 +199,19 @@ const AddThought = () => {
         websiteLinks: [],
       };
 
-      const response = await apiClient.post<Thought>('api/thoughts', payload);
-      const thoughtData = Array.isArray(response.data) ? response.data[0] : response.data;
+      let response;
+      let thoughtData: Thought;
+
+      if (thoughtId && thoughtId > 0) {
+        // Update existing thought
+        payload.id = thoughtId;
+        response = await apiClient.put<Thought>('api/thoughts', payload);
+        thoughtData = Array.isArray(response.data) ? response.data[0] : response.data;
+      } else {
+        // Create new thought
+        response = await apiClient.post<Thought>('api/thoughts', payload);
+        thoughtData = Array.isArray(response.data) ? response.data[0] : response.data;
+      }
       
       if (thoughtData.id > 0) {
         setThoughtId(thoughtData.id);
@@ -136,13 +222,24 @@ const AddThought = () => {
         setSearchParams({ step: nextStep.toString(), thoughtId: thoughtData.id.toString() });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while adding the thought');
+      setError(err instanceof Error ? err.message : `An error occurred while ${thoughtId && thoughtId > 0 ? 'updating' : 'adding'} the thought`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStepChange = (step: number) => {
+  const handleStepChange = async (step: number) => {
+    // If navigating away from Details step (step 1), save first
+    if (activeStep === 1 && step !== 1 && thoughtDetailsRef.current) {
+      try {
+        await thoughtDetailsRef.current.save();
+      } catch (err) {
+        // Error is already handled in ThoughtDetails component
+        // Don't navigate if save fails
+        return;
+      }
+    }
+
     if (step === 0 || (thoughtId && step > 0)) {
       setActiveStep(step);
       if (thoughtId) {
@@ -158,7 +255,7 @@ const AddThought = () => {
       case 0:
         return renderThoughtStep();
       case 1:
-        return thoughtId ? <ThoughtDetailsWizard thoughtId={thoughtId} onComplete={() => handleStepChange(2)} /> : null;
+        return thoughtId ? <ThoughtDetailsWizard thoughtId={thoughtId} onComplete={() => handleStepChange(2)} ref={thoughtDetailsRef} /> : null;
       case 2:
         return renderWebsiteLinksStep();
       case 3:
@@ -170,6 +267,11 @@ const AddThought = () => {
 
   const renderThoughtStep = () => (
     <Box component="form" sx={{ mt: 3, maxWidth: 600 }}>
+      {loadingThought && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      )}
       <TextField
         fullWidth
         label="Description"
@@ -179,6 +281,7 @@ const AddThought = () => {
         required
         multiline
         rows={4}
+        disabled={loadingThought}
       />
       <FormControl fullWidth margin="normal" required>
         <InputLabel>Thought Bucket</InputLabel>
@@ -190,7 +293,7 @@ const AddThought = () => {
             const bucket = thoughtBuckets.find(b => b.id === bucketId);
             setSelectedBucket(bucket || null);
           }}
-          disabled={loadingBuckets}
+          disabled={loadingBuckets || loadingThought}
         >
           {loadingBuckets ? (
             <MenuItem disabled>
@@ -214,6 +317,7 @@ const AddThought = () => {
         onChange={(e) => setTextType(e.target.value)}
         margin="normal"
         helperText="Default: PlainText"
+        disabled={loadingThought}
       />
       <TextField
         fullWidth
@@ -226,12 +330,14 @@ const AddThought = () => {
           shrink: true,
         }}
         helperText="Leave empty to use current date"
+        disabled={loadingThought}
       />
       <FormControlLabel
         control={
           <Switch
             checked={showOnDashboard}
             onChange={(e) => setShowOnDashboard(e.target.checked)}
+            disabled={loadingThought}
           />
         }
         label="Show on Dashboard"
@@ -242,7 +348,7 @@ const AddThought = () => {
           <IconButton
             color="primary"
             onClick={handleSubmit}
-            disabled={loading || loadingBuckets}
+            disabled={loading || loadingBuckets || loadingThought}
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : <ArrowForwardIcon />}
           </IconButton>
@@ -344,7 +450,7 @@ const AddThought = () => {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Add a New Thought
+        {thoughtId && thoughtId > 0 ? 'Edit Thought' : 'Add a New Thought'}
       </Typography>
       
       {/* Stepper */}
@@ -353,11 +459,11 @@ const AddThought = () => {
           {steps.map((label, index) => (
             <Step key={label}>
               <StepLabel
-                onClick={() => {
+                onClick={async () => {
                   if (thoughtId && index > 0) {
-                    handleStepChange(index);
+                    await handleStepChange(index);
                   } else if (index === 0) {
-                    handleStepChange(0);
+                    await handleStepChange(0);
                   }
                 }}
                 sx={{
@@ -389,53 +495,85 @@ interface ThoughtDetailsWizardProps {
   onComplete: () => void;
 }
 
-const ThoughtDetailsWizard = ({ thoughtId, onComplete }: ThoughtDetailsWizardProps) => {
-  const navigate = useNavigate();
-  const [, setSearchParams] = useSearchParams();
-  
-  const handleSaveComplete = () => {
-    // After saving, move to next step
-    onComplete();
-  };
+const ThoughtDetailsWizard = React.forwardRef<ThoughtDetailsHandle, ThoughtDetailsWizardProps>(
+  ({ thoughtId, onComplete }, ref) => {
+    const navigate = useNavigate();
+    const [, setSearchParams] = useSearchParams();
+    
+    const handleSaveComplete = () => {
+      // After saving, move to next step
+      onComplete();
+    };
 
-  return (
-    <Box>
-      <ThoughtDetails 
-        thoughtId={thoughtId} 
-        onSaveComplete={handleSaveComplete}
-        hideNavigation={true}
-      />
-      <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-        <Tooltip title="Back">
-          <IconButton
-            color="primary"
-            onClick={() => {
-              setSearchParams({ step: '0', thoughtId: thoughtId.toString() });
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Next">
-          <IconButton
-            color="primary"
-            onClick={onComplete}
-          >
-            <ArrowForwardIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Cancel">
-          <IconButton
-            color="error"
-            onClick={() => navigate('/thoughts')}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Tooltip>
+    const handleBack = async () => {
+      // Save before going back
+      if (ref && typeof ref !== 'function' && ref.current) {
+        try {
+          await ref.current.save();
+        } catch (err) {
+          // Error is already handled in ThoughtDetails component
+          // Don't navigate if save fails
+          return;
+        }
+      }
+      setSearchParams({ step: '0', thoughtId: thoughtId.toString() });
+    };
+
+    const handleNext = async () => {
+      // Save before going to next step
+      if (ref && typeof ref !== 'function' && ref.current) {
+        try {
+          await ref.current.save();
+        } catch (err) {
+          // Error is already handled in ThoughtDetails component
+          // Don't navigate if save fails
+          return;
+        }
+      }
+      onComplete();
+    };
+
+    return (
+      <Box>
+        <ThoughtDetails 
+          thoughtId={thoughtId} 
+          onSaveComplete={handleSaveComplete}
+          hideNavigation={true}
+          skipSaveComplete={true}
+          ref={ref}
+        />
+        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Tooltip title="Back">
+            <IconButton
+              color="primary"
+              onClick={handleBack}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Next">
+            <IconButton
+              color="primary"
+              onClick={handleNext}
+            >
+              <ArrowForwardIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Cancel">
+            <IconButton
+              color="error"
+              onClick={() => navigate('/thoughts')}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  }
+);
+
+ThoughtDetailsWizard.displayName = 'ThoughtDetailsWizard';
 
 export default AddThought;
 

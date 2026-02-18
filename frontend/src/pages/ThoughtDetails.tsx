@@ -8,11 +8,10 @@ import {
   Paper
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
@@ -28,9 +27,15 @@ interface ThoughtDetailsProps {
   thoughtId?: number;
   onSaveComplete?: () => void;
   hideNavigation?: boolean;
+  skipSaveComplete?: boolean; // If true, don't call onSaveComplete after save
 }
 
-const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigation = false }: ThoughtDetailsProps) => {
+export interface ThoughtDetailsHandle {
+  save: () => Promise<void>;
+}
+
+const ThoughtDetails = forwardRef<ThoughtDetailsHandle, ThoughtDetailsProps>(
+  ({ thoughtId: propThoughtId, onSaveComplete, hideNavigation = false, skipSaveComplete = false }, ref) => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -129,9 +134,13 @@ const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigati
       setDetails(validDetails);
     }
 
-    // If no valid details, just navigate back
+    // If no valid details, just return (don't navigate)
     if (validDetails.length === 0) {
-      navigate('/thoughts');
+      if (onSaveComplete) {
+        onSaveComplete();
+      } else if (!hideNavigation) {
+        navigate('/thoughts');
+      }
       return;
     }
 
@@ -181,11 +190,13 @@ const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigati
       setDetails(reloadedDetails);
       setOriginalDetailIds(response.data.map((d) => d.id));
 
-      // Call onSaveComplete if in wizard mode, otherwise navigate
-      if (onSaveComplete) {
-        onSaveComplete();
-      } else if (!hideNavigation) {
-        navigate('/thoughts');
+      // Call onSaveComplete if in wizard mode and not skipping, otherwise navigate
+      if (!skipSaveComplete) {
+        if (onSaveComplete) {
+          onSaveComplete();
+        } else if (!hideNavigation) {
+          navigate('/thoughts');
+        }
       }
     } catch (err) {
       setError(
@@ -193,10 +204,16 @@ const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigati
           ? err.message
           : 'An error occurred while saving thought details'
       );
+      throw err; // Re-throw so parent can handle it
     } finally {
       setSaving(false);
     }
   };
+
+  // Expose save function via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSaveAll,
+  }));
 
   if (loading) {
     return (
@@ -218,32 +235,19 @@ const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigati
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           alignItems: 'center',
           mb: 3,
         }}
       >
-        <Typography variant="h4" component="h1">
-          Thought Details
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton
-            color="primary"
-            onClick={handleAddDetail}
-            disabled={saving}
-            title="Add Detail"
-          >
-            <AddIcon />
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={handleSaveAll}
-            disabled={saving || details.length === 0}
-            title="Save All Details"
-          >
-            {saving ? <CircularProgress size={24} /> : <SaveIcon />}
-          </IconButton>
-        </Box>
+        <IconButton
+          color="primary"
+          onClick={handleAddDetail}
+          disabled={saving}
+          title="Add Detail"
+        >
+          <AddIcon />
+        </IconButton>
       </Box>
 
       {error && (
@@ -346,6 +350,8 @@ const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigati
       )}
     </Box>
   );
-};
+});
+
+ThoughtDetails.displayName = 'ThoughtDetails';
 
 export default ThoughtDetails;
