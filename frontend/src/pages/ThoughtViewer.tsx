@@ -5,9 +5,12 @@ import {
   Alert,
   Paper,
   Chip,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { Thought, ThoughtDetail } from '../types';
@@ -16,6 +19,7 @@ const ThoughtViewer = () => {
   const { id } = useParams<{ id: string }>();
   const thoughtId = id ? parseInt(id, 10) : 0;
   const apiClient = useApiClient();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth0();
 
   const [thought, setThought] = useState<Thought | null>(null);
@@ -113,16 +117,24 @@ const ThoughtViewer = () => {
 
   return (
     <Box>
-      {/* Category (Bucket) */}
-      {thought.bucket && (
-        <Box sx={{ mb: 2 }}>
+      {/* Category (Bucket) and Edit Icon */}
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {thought.bucket && (
           <Chip
             label={thought.bucket.description}
             color="primary"
             variant="outlined"
           />
-        </Box>
-      )}
+        )}
+        <Tooltip title="Edit Thought">
+          <IconButton
+            color="primary"
+            onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=0`)}
+          >
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Header with Description and Date */}
       <Box

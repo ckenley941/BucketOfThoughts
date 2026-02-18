@@ -80,13 +80,13 @@ const ThoughtBuckets = () => {
           <Typography variant="h4" component="h1">
             Thought Buckets
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+          <IconButton
+            color="primary"
             onClick={() => navigate('/thought-buckets/add')}
+            title="Add Thought Bucket"
           >
-            Add Thought Bucket
-          </Button>
+            <AddIcon />
+          </IconButton>
         </Box>
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
@@ -101,13 +101,13 @@ const ThoughtBuckets = () => {
         <Typography variant="h4" component="h1">
           Thought Buckets
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
+        <IconButton
+          color="primary"
           onClick={() => navigate('/thought-buckets/add')}
+          title="Add Thought Bucket"
         >
-          Add Thought Bucket
-        </Button>
+          <AddIcon />
+        </IconButton>
       </Box>
 
       {thoughtBuckets.length === 0 ? (
@@ -168,7 +168,6 @@ const ThoughtBuckets = () => {
                     navigate(`/thought-buckets/${bucket.id}`);
                   }}
                 >
-                  Edit
                 </Button>
                 <IconButton
                   size="small"

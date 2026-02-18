@@ -13,6 +13,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import SaveIcon from '@mui/icons-material/Save';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -373,16 +374,32 @@ const ThoughtWizard = () => {
     }
   };
 
-  const handleFinish = async () => {
-    // Save current step if not on step 0
-    if (activeStep > 0) {
+  const handleSaveAndClose = async () => {
+    let currentThoughtId: number | null = thoughtId;
+
+    if (activeStep === 0) {
+      // Save thought data
+      const savedThoughtId = await saveThought();
+      if (!savedThoughtId) {
+        return; // Error already displayed
+      }
+      currentThoughtId = savedThoughtId;
+    } else {
+      // Save current step
       const saved = await saveCurrentStep();
       if (!saved) {
-        return;
+        return; // Error already displayed
       }
     }
+
+    // Ensure we have a thoughtId before navigating
+    if (!currentThoughtId) {
+      setError('Unable to save. Please complete the Thought step first.');
+      return;
+    }
+
     refreshRecentThoughts();
-    navigate('/thoughts');
+    navigate(`/thought/${currentThoughtId}`);
   };
 
   const handleStepperClick = async (index: number) => {
@@ -455,20 +472,21 @@ const ThoughtWizard = () => {
             </IconButton>
           </Tooltip>
         ) : (
-          <Tooltip title="Finish">
-            <IconButton
-              color="primary"
-              onClick={handleFinish}
-              disabled={saving || loading || !thoughtId}
-            >
-              {saving || loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                <CheckIcon />
-              )}
-            </IconButton>
-          </Tooltip>
+          <></>
         )}
+        <Tooltip title="Save and Close">
+          <IconButton
+            color="primary"
+            onClick={handleSaveAndClose}
+            disabled={saving || loading || (activeStep === 0 && (!thoughtData.description?.trim() || !thoughtData.selectedBucket))}
+          >
+            {saving || loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              <SaveIcon />
+            )}
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Cancel">
           <IconButton
             color="error"
