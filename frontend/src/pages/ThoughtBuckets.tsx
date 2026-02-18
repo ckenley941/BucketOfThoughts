@@ -1,7 +1,6 @@
 import {
   Typography,
   Box,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -116,63 +115,72 @@ const ThoughtBuckets = () => {
           No thought buckets yet. Add your first thought bucket!
         </Typography>
       ) : (
-        <Grid container spacing={3}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+            },
+            gap: 3,
+          }}
+        >
           {thoughtBuckets.map((bucket) => (
-            <Grid item xs={12} sm={6} md={4} key={bucket.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    boxShadow: 6,
-                  },
-                }}
-                onClick={() => navigate(`/thought-buckets/${bucket.id}`)}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" component="h2" gutterBottom>
-                    {bucket.description || `Bucket #${bucket.id}`}
-                  </Typography>
+            <Card
+              key={bucket.id}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: 'pointer',
+                '&:hover': {
+                  boxShadow: 6,
+                },
+              }}
+              onClick={() => navigate(`/thought-buckets/${bucket.id}`)}
+            >
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" component="h2" gutterBottom>
+                  {bucket.description || `Bucket #${bucket.id}`}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Module ID: {bucket.thoughtModuleId}
+                </Typography>
+                {bucket.parentId && (
                   <Typography variant="body2" color="text.secondary">
-                    Module ID: {bucket.thoughtModuleId}
+                    Parent ID: {bucket.parentId}
                   </Typography>
-                  {bucket.parentId && (
-                    <Typography variant="body2" color="text.secondary">
-                      Parent ID: {bucket.parentId}
-                    </Typography>
-                  )}
-                  <Typography variant="body2" color="text.secondary">
-                    Sort Order: {bucket.sortOrder}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Show on Dashboard: {bucket.showOnDashboard ? 'Yes' : 'No'}
-                  </Typography>
-                </CardContent>
-                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                  <Button
-                    size="small"
-                    startIcon={<EditIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/thought-buckets/${bucket.id}`);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={(e) => handleDelete(bucket.id, e)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </CardActions>
-              </Card>
-            </Grid>
+                )}
+                <Typography variant="body2" color="text.secondary">
+                  Sort Order: {bucket.sortOrder}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Show on Dashboard: {bucket.showOnDashboard ? 'Yes' : 'No'}
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                <Button
+                  size="small"
+                  startIcon={<EditIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/thought-buckets/${bucket.id}`);
+                  }}
+                >
+                  Edit
+                </Button>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => handleDelete(bucket.id, e)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </CardActions>
+            </Card>
           ))}
-        </Grid>
+        </Box>
       )}
     </Box>
   );

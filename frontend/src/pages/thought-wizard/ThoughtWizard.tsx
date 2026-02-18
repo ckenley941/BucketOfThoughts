@@ -92,7 +92,8 @@ const ThoughtWizard = () => {
         setLoadingBuckets(true);
         const response = await apiClient.get<ThoughtBucket[]>('api/thoughtbuckets');
         setThoughtBuckets(response.data);
-        if (response.data.length > 0 && !thoughtData.selectedBucket) {
+        // Auto-select first bucket when creating a new thought (not editing)
+        if (response.data.length > 0 && !thoughtId && !thoughtData.selectedBucket) {
           setThoughtData((prev) => ({
             ...prev,
             selectedBucket: response.data[0],

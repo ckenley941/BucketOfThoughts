@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../../services/api';
@@ -41,6 +42,7 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [nextTempId, setNextTempId] = useState(-1);
+    const [draggedDetailId, setDraggedDetailId] = useState<number | string | null>(null);
 
     useEffect(() => {
       if (!isAuthenticated || !thoughtId) {
@@ -129,6 +131,59 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
       }
     };
 
+    const handleDragStart = (detailId: number | string) => {
+      setDraggedDetailId(detailId);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e: React.DragEvent, dropDetailId: number | string) => {
+      e.preventDefault();
+      if (draggedDetailId === null || draggedDetailId === dropDetailId) {
+        setDraggedDetailId(null);
+        return;
+      }
+
+      // Sort details by sortOrder first
+      const sortedDetails = [...details].sort((a, b) => a.sortOrder - b.sortOrder);
+      
+      // Find the dragged item and drop target indices
+      const draggedIndex = sortedDetails.findIndex((d) => d.id === draggedDetailId);
+      const dropIndex = sortedDetails.findIndex((d) => d.id === dropDetailId);
+      
+      if (draggedIndex === -1 || dropIndex === -1 || draggedIndex === dropIndex) {
+        setDraggedDetailId(null);
+        return;
+      }
+      
+      // Remove dragged item from its position
+      const draggedItem = sortedDetails[draggedIndex];
+      const newDetails = sortedDetails.filter((_, index) => index !== draggedIndex);
+      
+      // Insert at new position (adjust index if dragging down)
+      const finalDropIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
+      newDetails.splice(finalDropIndex, 0, draggedItem);
+      
+      // Update sort orders sequentially starting from 1
+      const reorderedDetails = newDetails.map((detail, index) => ({
+        ...detail,
+        sortOrder: index + 1,
+      }));
+
+      setDetails(reorderedDetails);
+      setDraggedDetailId(null);
+      if (onDetailsChange) {
+        onDetailsChange(reorderedDetails);
+      }
+    };
+
+    const handleDragEnd = () => {
+      setDraggedDetailId(null);
+    };
+
     const handleSaveAll = async () => {
       setError(null);
       if (!isAuthenticated) {
@@ -152,6 +207,18 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
       // If no valid details, just return
       if (validDetails.length === 0) {
         return;
+      }
+
+      // Check for duplicate sort orders
+      const sortOrders = validDetails.map((d) => d.sortOrder);
+      const duplicateSortOrders = sortOrders.filter(
+        (order, index) => sortOrders.indexOf(order) !== index
+      );
+      
+      if (duplicateSortOrders.length > 0) {
+        const errorMessage = `Duplicate sort orders found. Please ensure each detail has a unique sort order. Duplicate values: ${[...new Set(duplicateSortOrders)].join(', ')}`;
+        setError(errorMessage);
+        throw new Error(errorMessage);
       }
 
       setSaving(true);
@@ -270,7 +337,20 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
             {details
               .sort((a, b) => a.sortOrder - b.sortOrder)
               .map((detail) => (
-                <Paper key={detail.id} sx={{ p: 2 }}>
+                <Paper
+                  key={detail.id}
+                  sx={{
+                    p: 2,
+                    cursor: 'move',
+                    opacity: draggedDetailId === detail.id ? 0.5 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
+                  draggable
+                  onDragStart={() => handleDragStart(detail.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, detail.id)}
+                  onDragEnd={handleDragEnd}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -279,6 +359,13 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
                       mb: detail.isExpanded ? 2 : 0,
                     }}
                   >
+                    <DragIndicatorIcon
+                      sx={{
+                        color: 'text.secondary',
+                        cursor: 'grab',
+                        '&:active': { cursor: 'grabbing' },
+                      }}
+                    />
                     <TextField
                       label="Sort Order"
                       type="number"

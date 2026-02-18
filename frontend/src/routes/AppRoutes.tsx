@@ -8,7 +8,6 @@ import Home from '../pages/Home';
 import ThoughtWizard from '../pages/thought-wizard/ThoughtWizard';
 import ThoughtViewer from '../pages/ThoughtViewer';
 import Thoughts from '../pages/Thoughts';
-import ThoughtDetails from '../pages/ThoughtDetails';
 import ThoughtBuckets from '../pages/ThoughtBuckets';
 import ThoughtBucketForm from '../pages/ThoughtBucketForm';
 import Login from '../pages/Login';
@@ -83,16 +82,6 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <MainLayout>
                 <ThoughtViewer />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/thought/:id/details"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ThoughtDetails />
               </MainLayout>
             </ProtectedRoute>
           }

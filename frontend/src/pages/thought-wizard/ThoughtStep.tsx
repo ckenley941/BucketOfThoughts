@@ -9,6 +9,7 @@ import {
   Switch,
   CircularProgress,
 } from '@mui/material';
+import { useEffect } from 'react';
 import type { ThoughtBucket } from '../../types';
 
 export interface ThoughtStepData {
