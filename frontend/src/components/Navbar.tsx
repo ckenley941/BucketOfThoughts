@@ -41,7 +41,7 @@ const Navbar = ({ showSearch = true }: NavbarProps) => {
   };
 
   const handleAddThought = () => {
-    navigate('/add-thought');
+    navigate('/thought-wizard');
   };
 
   const handleThoughts = () => {
