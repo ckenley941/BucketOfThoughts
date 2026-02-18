@@ -8,6 +8,7 @@ import {
   Typography,
   CircularProgress,
   Divider,
+  Chip,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -102,24 +103,23 @@ const Sidebar = () => {
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         width: '100%',
-                      },
-                      '& .MuiListItemText-secondary': {
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        width: '100%',
+                        mt: 0.5,
                       },
                     }}
                   >
+                    {thought.bucket && (
+                      <Chip
+                        label={thought.bucket}
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                        sx={{ mb: 0.5 }}
+                      />
+                    )}
                     <ListItemText
                       primary={thought.description || `Thought #${thought.id}`}
-                      secondary={thought.bucket || 'No bucket'}
                       primaryTypographyProps={{
                         variant: 'body2',
-                      }}
-                      secondaryTypographyProps={{
-                        variant: 'caption',
-                        color: 'text.secondary',
                       }}
                     />
                   </ListItemButton>

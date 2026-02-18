@@ -99,7 +99,7 @@ const AddThought = () => {
       if (response.data.id > 0) {
         // Refresh recent thoughts in sidebar
         refreshRecentThoughts();
-        navigate('/thoughts');
+        navigate(`/thought/${response.data.id}/details`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while adding the thought');
