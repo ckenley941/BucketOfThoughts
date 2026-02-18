@@ -6,7 +6,7 @@ import MainLayout from '../layouts/MainLayout';
 import LoginLayout from '../layouts/LoginLayout';
 import Home from '../pages/Home';
 import ThoughtWizard from '../pages/thought-wizard/ThoughtWizard';
-import Thought from '../pages/Thought';
+import ThoughtViewer from '../pages/ThoughtViewer';
 import Thoughts from '../pages/Thoughts';
 import ThoughtDetails from '../pages/ThoughtDetails';
 import ThoughtBuckets from '../pages/ThoughtBuckets';
@@ -82,7 +82,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <Thought />
+                <ThoughtViewer />
               </MainLayout>
             </ProtectedRoute>
           }

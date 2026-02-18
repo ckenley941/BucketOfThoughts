@@ -12,7 +12,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { Thought, ThoughtDetail } from '../types';
 
-const Thought = () => {
+const ThoughtViewer = () => {
   const { id } = useParams<{ id: string }>();
   const thoughtId = id ? parseInt(id, 10) : 0;
   const apiClient = useApiClient();
@@ -174,5 +174,4 @@ const Thought = () => {
   );
 };
 
-export default Thought;
-
+export default ThoughtViewer;
