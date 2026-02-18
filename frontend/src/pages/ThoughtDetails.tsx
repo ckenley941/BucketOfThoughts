@@ -24,11 +24,18 @@ interface LocalThoughtDetail extends Omit<ThoughtDetail, 'id'> {
   isExpanded?: boolean;
 }
 
-const ThoughtDetails = () => {
+interface ThoughtDetailsProps {
+  thoughtId?: number;
+  onSaveComplete?: () => void;
+  hideNavigation?: boolean;
+}
+
+const ThoughtDetails = ({ thoughtId: propThoughtId, onSaveComplete, hideNavigation = false }: ThoughtDetailsProps) => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const thoughtId = id ? parseInt(id, 10) : 0;
+  const paramThoughtId = id ? parseInt(id, 10) : 0;
+  const thoughtId = propThoughtId || paramThoughtId;
 
   const { isAuthenticated } = useAuth0();
   const [details, setDetails] = useState<LocalThoughtDetail[]>([]);
@@ -174,8 +181,12 @@ const ThoughtDetails = () => {
       setDetails(reloadedDetails);
       setOriginalDetailIds(response.data.map((d) => d.id));
 
-      // Navigate back to thoughts list
-      navigate('/thoughts');
+      // Call onSaveComplete if in wizard mode, otherwise navigate
+      if (onSaveComplete) {
+        onSaveComplete();
+      } else if (!hideNavigation) {
+        navigate('/thoughts');
+      }
     } catch (err) {
       setError(
         err instanceof Error
