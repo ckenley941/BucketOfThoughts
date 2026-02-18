@@ -35,6 +35,21 @@ const ThoughtStep = ({
   loadingThought,
   onDataChange,
 }: ThoughtStepProps) => {
+  // Auto-select first bucket when buckets finish loading and none is selected
+  useEffect(() => {
+    if (
+      !loadingBuckets &&
+      thoughtBuckets.length > 0 &&
+      !data.selectedBucket
+    ) {
+      // Ensure we have a valid bucket before selecting
+      const firstBucket = thoughtBuckets[0];
+      if (firstBucket && firstBucket.id) {
+        onDataChange({ selectedBucket: firstBucket });
+      }
+    }
+  }, [loadingBuckets, thoughtBuckets.length, data.selectedBucket, onDataChange]);
+
   return (
     <Box component="form" sx={{ mt: 3, maxWidth: 600 }}>
       {loadingThought && (
@@ -64,6 +79,7 @@ const ThoughtStep = ({
             onDataChange({ selectedBucket: bucket || null });
           }}
           disabled={loadingBuckets || loadingThought}
+          displayEmpty
         >
           {loadingBuckets ? (
             <MenuItem disabled>

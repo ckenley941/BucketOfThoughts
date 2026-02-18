@@ -13,20 +13,16 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../../services/api';
 import { refreshRecentThoughts } from '../../hooks';
 import type { Thought, ThoughtBucket } from '../../types';
 import ThoughtStep, { type ThoughtStepData } from './ThoughtStep';
-import DetailsStep, { type DetailsStepHandle } from './DetailsStep';
-import WebsiteLinksStep, {
-  type WebsiteLinksStepHandle,
-} from './WebsiteLinksStep';
-import RelatedThoughtsStep, {
-  type RelatedThoughtsStepHandle,
-} from './RelatedThoughtsStep';
+import DetailsStep from './DetailsStep';
+import WebsiteLinksStep from './WebsiteLinksStep';
+import RelatedThoughtsStep from './RelatedThoughtsStep';
 
 const steps = ['Thought', 'Details', 'Website Links', 'Related Thoughts'];
 
@@ -92,13 +88,6 @@ const ThoughtWizard = () => {
         setLoadingBuckets(true);
         const response = await apiClient.get<ThoughtBucket[]>('api/thoughtbuckets');
         setThoughtBuckets(response.data);
-        // Auto-select first bucket when creating a new thought (not editing)
-        if (response.data.length > 0 && !thoughtId && !thoughtData.selectedBucket) {
-          setThoughtData((prev) => ({
-            ...prev,
-            selectedBucket: response.data[0],
-          }));
-        }
       } catch (err) {
         setError(
           err instanceof Error
