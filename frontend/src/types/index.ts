@@ -40,6 +40,9 @@ export interface ThoughtDetail {
 export interface ThoughtWebsiteLink {
   thoughtId: number;
   websiteLinkId: number;
+  websiteUrl: string;
+  description?: string;
+  sortOrder: number;
 }
 
 export interface ServiceResponse<T> {

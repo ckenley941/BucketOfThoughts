@@ -77,10 +77,47 @@ public class ThoughtWebsiteLinkService(BucketOfThoughtsDbContext dbContext, IUse
             };
         }
 
-        // Check if the link already exists
+        // Create or get WebsiteLink
+        WebsiteLink websiteLink;
+        if (thoughtWebsiteLinkDto.WebsiteLinkId > 0)
+        {
+            // Use existing WebsiteLink
+            var existingWebsiteLink = await dbContext.WebsiteLinks
+                .FirstOrDefaultAsync(wl => wl.Id == thoughtWebsiteLinkDto.WebsiteLinkId);
+            
+            if (existingWebsiteLink == null)
+            {
+                return new ApplicationServiceResult<ThoughtWebsiteLinkDto>
+                {
+                    StatusCode = ServiceStatusCodes.InternalServerError,
+                    ErrorMessage = "Website link not found."
+                };
+            }
+
+            websiteLink = existingWebsiteLink;
+
+            websiteLink.WebsiteUrl = thoughtWebsiteLinkDto.WebsiteUrl;
+            websiteLink.Description = thoughtWebsiteLinkDto.Description ?? string.Empty;
+            websiteLink.SortOrder = (int)thoughtWebsiteLinkDto.SortOrder;
+            dbContext.WebsiteLinks.Update(websiteLink);
+        }
+        else
+        {
+            // Create new WebsiteLink
+            websiteLink = new WebsiteLink
+            {
+                WebsiteUrl = thoughtWebsiteLinkDto.WebsiteUrl,
+                Description = thoughtWebsiteLinkDto.Description,
+                SortOrder = (int)thoughtWebsiteLinkDto.SortOrder
+            };
+            dbContext.WebsiteLinks.Add(websiteLink);
+            await dbContext.SaveChangesAsync(); // Save to get the ID
+        }
+
+        // Check if the ThoughtWebsiteLink already exists
         var existingLink = await dbContext.ThoughtWebsiteLinks
             .FirstOrDefaultAsync(twl => twl.ThoughtId == thoughtWebsiteLinkDto.ThoughtId && 
-                                        twl.WebsiteLinkId == thoughtWebsiteLinkDto.WebsiteLinkId && 
+                                        twl.WebsiteLinkId == websiteLink.Id && 
                                         !twl.IsDeleted);
         
         if (existingLink != null)
@@ -91,6 +128,7 @@ public class ThoughtWebsiteLinkService(BucketOfThoughtsDbContext dbContext, IUse
                 existingLink.IsDeleted = false;
                 dbContext.ThoughtWebsiteLinks.Update(existingLink);
                 await dbContext.SaveChangesAsync();
+                thoughtWebsiteLinkDto.WebsiteLinkId = websiteLink.Id;
                 return new ApplicationServiceResult<ThoughtWebsiteLinkDto>(thoughtWebsiteLinkDto);
             }
             else
@@ -103,9 +141,16 @@ public class ThoughtWebsiteLinkService(BucketOfThoughtsDbContext dbContext, IUse
             }
         }
 
-        var entity = thoughtWebsiteLinkDto.MapInsert();
+        // Create ThoughtWebsiteLink
+        var entity = new ThoughtWebsiteLink
+        {
+            ThoughtId = thoughtWebsiteLinkDto.ThoughtId,
+            WebsiteLinkId = websiteLink.Id
+        };
         dbContext.ThoughtWebsiteLinks.Add(entity);
         await dbContext.SaveChangesAsync();
+        
+        thoughtWebsiteLinkDto.WebsiteLinkId = websiteLink.Id;
         return new ApplicationServiceResult<ThoughtWebsiteLinkDto>(thoughtWebsiteLinkDto);
     }
 
@@ -121,12 +166,22 @@ public class ThoughtWebsiteLinkService(BucketOfThoughtsDbContext dbContext, IUse
         }
 
         var thoughtWebsiteLinkDbRow = await dbContext.ThoughtWebsiteLinks
+            .Include(twl => twl.WebsiteLink)
             .SingleAsync(twl => twl.ThoughtId == thoughtWebsiteLinkDto.ThoughtId && 
                                 twl.WebsiteLinkId == thoughtWebsiteLinkDto.WebsiteLinkId && 
                                 twl.Thought.LoginProfileId == userSessionProvider.LoginProfileId && 
                                 !twl.IsDeleted);
-        var entity = thoughtWebsiteLinkDto.MapUpdate(thoughtWebsiteLinkDbRow);
-        dbContext.ThoughtWebsiteLinks.Update(entity);
+        
+        // Update WebsiteLink properties
+        if (thoughtWebsiteLinkDbRow.WebsiteLink != null)
+        {
+            thoughtWebsiteLinkDbRow.WebsiteLink.WebsiteUrl = thoughtWebsiteLinkDto.WebsiteUrl;
+            thoughtWebsiteLinkDbRow.WebsiteLink.Description = thoughtWebsiteLinkDto.Description ?? string.Empty;
+            thoughtWebsiteLinkDbRow.WebsiteLink.SortOrder = (int)thoughtWebsiteLinkDto.SortOrder;
+            dbContext.WebsiteLinks.Update(thoughtWebsiteLinkDbRow.WebsiteLink);
+        }
+        
+        dbContext.ThoughtWebsiteLinks.Update(thoughtWebsiteLinkDbRow);
         await dbContext.SaveChangesAsync();
         return new ApplicationServiceResult<ThoughtWebsiteLinkDto>(thoughtWebsiteLinkDto);
     }
