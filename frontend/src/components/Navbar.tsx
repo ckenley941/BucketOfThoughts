@@ -80,6 +80,10 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
     navigate('/about');
   };
 
+  const handleHome = () => {
+    navigate('/');
+  };
+
   const userDisplayName = user?.name || user?.email || 'User';
   const isUserMenuOpen = Boolean(anchorEl);
 
@@ -99,6 +103,7 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
         <Typography
           variant="h6"
           component="div"
+          onClick={handleHome}
           sx={{
             flexGrow: { xs: 1, md: 0 },
             mr: { xs: 0, md: 4 },
@@ -106,6 +111,10 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 0.8,
+            },
           }}
         >
           {isMobile ? 'BoT' : 'Bucket of Thoughts'}
