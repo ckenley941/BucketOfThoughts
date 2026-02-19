@@ -95,7 +95,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }: SidebarProps) => {
       >
         {!collapsed && (
           <Typography variant="h6" sx={{ px: 1, flex: 1 }}>
-            Recent Thoughts
+            Recent Memory
           </Typography>
         )}
         {!isMobile && (

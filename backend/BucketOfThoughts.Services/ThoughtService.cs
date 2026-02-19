@@ -16,6 +16,7 @@ public interface IThoughtService
     Task<ApplicationServiceResult<ThoughtDto>> UpdateThought(ThoughtDto thoughtDto);
     Task<BaseApplicationServiceResult> DeleteThought(long id);
     Task<ApplicationServiceResult<RecentThoughtDto>> GetRecentThoughts();
+    Task<ApplicationServiceResult<ThoughtDto>> GetRandomThought(long? bucketId = null);
 }
 
 public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider): IThoughtService
@@ -118,6 +119,43 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
             })
             .ToListAsync();
         return new ApplicationServiceResult<RecentThoughtDto>(recentThoughts);
+    }
+
+    public async Task<ApplicationServiceResult<ThoughtDto>> GetRandomThought(long? bucketId = null)
+    {
+        var query = dbContext.Thoughts
+            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted);
+
+        if (bucketId.HasValue && bucketId.Value > 0)
+        {
+            query = query.Where(t => t.ThoughtBucketId == bucketId.Value);
+        }
+
+        var count = await query.CountAsync();
+        if (count == 0)
+        {
+            return new ApplicationServiceResult<ThoughtDto>();
+        }            
+
+        var random = new Random();
+        var skip = random.Next(0, count);
+        
+        var thought = await query
+            .Select(SelectFullThought)
+            .Skip(skip)
+            .Take(1)
+            .FirstOrDefaultAsync();
+
+        if (thought == null)
+        {
+            return new ApplicationServiceResult<ThoughtDto>
+            {
+                StatusCode = ServiceStatusCodes.InternalServerError,
+                ErrorMessage = "No thought found."
+            };
+        }
+
+        return new ApplicationServiceResult<ThoughtDto>(thought);
     }
 
     private async Task<bool> IsValidUser(long thoughtId)

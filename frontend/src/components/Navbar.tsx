@@ -15,7 +15,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Search, Add, List as ListIcon, Menu as MenuIcon } from '@mui/icons-material';
+import { Search, Add, List as ListIcon, Menu as MenuIcon, Shuffle as ShuffleIcon } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -51,6 +51,10 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
 
   const handleThoughts = () => {
     navigate('/thoughts');
+  };
+
+  const handleRandomThought = () => {
+    navigate('/home?random=true');
   };
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -194,6 +198,11 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
               <Tooltip title="Thoughts">
                 <IconButton color="inherit" onClick={handleThoughts} size={isMobile ? 'small' : 'medium'}>
                   <ListIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Random Thought">
+                <IconButton color="inherit" onClick={handleRandomThought} size={isMobile ? 'small' : 'medium'}>
+                  <ShuffleIcon />
                 </IconButton>
               </Tooltip>
               {isMobile ? (

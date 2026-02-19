@@ -13,6 +13,7 @@ namespace BucketOfThoughts.Api.Middleware
     {
         public async Task InvokeAsync(HttpContext context, BucketOfThoughtsDbContext dbContext)
         {
+            //TODO - look into this
             // Skip OPTIONS requests (CORS preflight)
             if (context.Request.Method == "OPTIONS")
             {

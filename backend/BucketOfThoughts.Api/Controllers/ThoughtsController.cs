@@ -142,4 +142,26 @@ public class ThoughtsController(IThoughtService thoughtService, IUserSessionProv
             return new EmptyResult();
         }
     }
+
+    /// <summary>
+    /// Gets a random thought, optionally filtered by bucket
+    /// </summary>
+    /// <param name="bucketId">Optional bucket ID to filter by</param>
+    /// <returns></returns>
+    [HttpGet("random")]
+    [ProducesResponseType<ThoughtDto>((int)HttpStatusCode.OK)]
+    public async Task<ActionResult<ThoughtDto>> GetRandomThought([FromQuery] long? bucketId = null)
+    {
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        var serviceResult = await thoughtService.GetRandomThought(bucketId);
+        if (serviceResult.IsSuccess)
+        {
+            return Ok(serviceResult.SingleResult);
+        }
+        else
+        {
+            await Response.WriteErrorResponse(new ErrorResponse(serviceResult.StatusCode, serviceResult.ErrorMessage));
+            return new EmptyResult();
+        }
+    }
 }
