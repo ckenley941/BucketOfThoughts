@@ -19,7 +19,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const ThoughtBuckets = () => {
+const ThoughtBucketsPage = () => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth0();
@@ -185,5 +185,5 @@ const ThoughtBuckets = () => {
   );
 };
 
-export default ThoughtBuckets;
+export default ThoughtBucketsPage;
 

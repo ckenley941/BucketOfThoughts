@@ -4,17 +4,17 @@ import { auth0Config } from '../config/auth0.config';
 import ProtectedRoute from './ProtectedRoute';
 import MainLayout from '../layouts/MainLayout';
 import LoginLayout from '../layouts/LoginLayout';
-import Home from '../pages/HomePage';
+import HomePage from '../pages/HomePage';
 import ThoughtWizard from '../pages/thought-wizard/ThoughtWizard';
-import ThoughtViewer from '../pages/ThoughtPage';
-import Thoughts from '../pages/ThoughtsPage';
-import ThoughtBuckets from '../pages/ThoughtBucketsPage';
+import ThoughtPage from '../pages/ThoughtPage';
+import ThoughtsPage from '../pages/ThoughtsPage';
+import ThoughtBucketsPage from '../pages/ThoughtBucketsPage';
 import ThoughtBucketForm from '../pages/ThoughtBucketForm';
-import Login from '../pages/LoginPage';
+import LoginPage from '../pages/LoginPage';
 import LoginCallback from '../pages/LoginCallback';
-import Logout from '../pages/LogoutPage';
-import About from '../pages/AboutPage';
-import Demo from '../pages/DemoPage';
+import LogoutPage from '../pages/LogoutPage';
+import AboutPage from '../pages/AboutPage';
+import DemoPage from '../pages/DemoPage';
 
 const AppRoutes = () => {
   return (
@@ -32,7 +32,7 @@ const AppRoutes = () => {
           path="/login"
           element={
             <LoginLayout>
-              <Login />
+              <LoginPage />
             </LoginLayout>
           }
         />
@@ -40,7 +40,7 @@ const AppRoutes = () => {
           path="/about"
           element={
             <LoginLayout>
-              <About />
+              <AboutPage />
             </LoginLayout>
           }
         />
@@ -48,12 +48,12 @@ const AppRoutes = () => {
           path="/demo"
           element={
             <LoginLayout>
-              <Demo />
+              <DemoPage />
             </LoginLayout>
           }
         />
         <Route path="/login-callback" element={<LoginCallback />} />
-        <Route path="/logout" element={<Logout />} />
+        <Route path="/logout" element={<LogoutPage />} />
 
         {/* Protected routes */}
         <Route
@@ -61,7 +61,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <Home />
+                <HomePage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -81,7 +81,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <ThoughtViewer />
+                <ThoughtPage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -91,7 +91,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <Thoughts />
+                <ThoughtsPage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -101,7 +101,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <ThoughtBuckets />
+                <ThoughtBucketsPage />
               </MainLayout>
             </ProtectedRoute>
           }

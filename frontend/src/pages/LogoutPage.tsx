@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
-const Logout = () => {
+const LogoutPage = () => {
   const { logout } = useAuth0();
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const Logout = () => {
   return null;
 };
 
-export default Logout;
+export default LogoutPage;
 
 
 

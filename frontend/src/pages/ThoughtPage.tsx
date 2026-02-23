@@ -16,11 +16,11 @@ import { useApiClient } from '../services/api';
 import type { Thought, ThoughtDetail, ThoughtWebsiteLink } from '../types';
 import LinkIcon from '@mui/icons-material/Link';
 
-interface ThoughtViewerProps {
+interface ThoughtProps {
   thoughtId?: number;
 }
 
-const ThoughtViewer = (props?: ThoughtViewerProps) => {
+const ThoughtPage = (props?: ThoughtProps) => {
   const { thoughtId: propThoughtId } = props || {};
   const { id } = useParams<{ id: string }>();
   const routeThoughtId = id ? parseInt(id, 10) : 0;
@@ -286,4 +286,4 @@ const ThoughtViewer = (props?: ThoughtViewerProps) => {
   );
 };
 
-export default ThoughtViewer;
+export default ThoughtPage;

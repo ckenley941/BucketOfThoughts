@@ -16,10 +16,10 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useSearchParams } from 'react-router-dom';
 import { useApiClient } from '../services/api';
 import { useThoughtBuckets } from '../hooks';
-import ThoughtViewer from './ThoughtPage';
+import ThoughtPage from './ThoughtPage';
 import type { Thought } from '../types';
 
-const Home = () => {
+const HomePage = () => {
   const { isAuthenticated } = useAuth0();
   const apiClient = useApiClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -126,11 +126,11 @@ const Home = () => {
 
       {randomThought && (
         <Box sx={{ mt: 3 }}>
-          <ThoughtViewer thoughtId={randomThought.id} />
+          <ThoughtPage thoughtId={randomThought.id} />
         </Box>
       )}
     </Box>
   );
 };
 
-export default Home;
+export default HomePage;

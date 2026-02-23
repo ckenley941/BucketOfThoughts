@@ -1,6 +1,6 @@
 import { Typography, Box } from '@mui/material';
 
-const Demo = () => {
+const DemoPage = () => {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -13,7 +13,7 @@ const Demo = () => {
   );
 };
 
-export default Demo;
+export default DemoPage;
 
 
 

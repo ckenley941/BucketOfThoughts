@@ -14,7 +14,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { Thought } from '../types';
 
-const Thoughts = () => {
+const ThoughtsPage = () => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
@@ -93,5 +93,5 @@ const Thoughts = () => {
   );
 };
 
-export default Thoughts;
+export default ThoughtsPage;
 

@@ -1,7 +1,7 @@
 import { Box, Typography, Button } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
 
-const Login = () => {
+const LoginPage = () => {
   const { loginWithRedirect } = useAuth0();
 
   const handleLogin = () => {
@@ -31,7 +31,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;
 
 
 
