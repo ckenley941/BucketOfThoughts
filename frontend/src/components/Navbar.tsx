@@ -195,7 +195,7 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
                   <Add />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Thoughts">
+              <Tooltip title="All Thoughts">
                 <IconButton color="inherit" onClick={handleThoughts} size={isMobile ? 'small' : 'medium'}>
                   <ListIcon />
                 </IconButton>

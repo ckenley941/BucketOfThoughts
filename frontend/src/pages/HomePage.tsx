@@ -11,7 +11,7 @@ import {
   Alert,
 } from '@mui/material';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useSearchParams } from 'react-router-dom';
 import { useApiClient } from '../services/api';
@@ -28,6 +28,7 @@ const HomePage = () => {
   const [randomThought, setRandomThought] = useState<Thought | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasAutoLoaded = useRef(false);
 
   const handleBucketChange = (event: { target: { value: string } }) => {
     setSelectedBucket(event.target.value);
@@ -77,6 +78,15 @@ const HomePage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated, loadingBuckets]);
+
+  // Auto-fetch random thought on first load
+  useEffect(() => {
+    if (isAuthenticated && !loadingBuckets && !hasAutoLoaded.current) {
+      hasAutoLoaded.current = true;
+      handleRandomThought();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, loadingBuckets]);
 
   return (
     <Box>

@@ -9,6 +9,8 @@ import {
   Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Button from '@mui/material/Button';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -131,6 +133,18 @@ const ThoughtPage = (props?: ThoughtProps) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Back Button */}
+      <Box sx={{ mb: -2 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/thoughts')}
+          variant="outlined"
+          size="small"
+        >
+          Back to Thoughts
+        </Button>
+      </Box>
+
       {/* Thought Section */}
       <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>
         <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
