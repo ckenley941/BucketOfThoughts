@@ -372,11 +372,8 @@ const WebsiteLinksStep = forwardRef<WebsiteLinksStepHandle, WebsiteLinksStepProp
                       onChange={(e) =>
                         handleUpdateLink(link.websiteLinkId, 'websiteUrl', e.target.value)
                       }
-                      required
                       fullWidth
                       size="small"
-                      error={!link.websiteUrl.trim()}
-                      //helperText={!link.websiteUrl.trim() ? 'Website URL is required' : ''}
                     />
                     <TextField
                       label="Description"

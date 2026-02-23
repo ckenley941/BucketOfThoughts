@@ -13,7 +13,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
-import type { Thought, ThoughtDetail } from '../types';
+import type { Thought, ThoughtDetail, ThoughtWebsiteLink } from '../types';
+import LinkIcon from '@mui/icons-material/Link';
 
 interface ThoughtViewerProps {
   thoughtId?: number;
@@ -30,6 +31,7 @@ const ThoughtViewer = (props?: ThoughtViewerProps) => {
 
   const [thought, setThought] = useState<Thought | null>(null);
   const [details, setDetails] = useState<ThoughtDetail[]>([]);
+  const [websiteLinks, setWebsiteLinks] = useState<ThoughtWebsiteLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +62,12 @@ const ThoughtViewer = (props?: ThoughtViewerProps) => {
           `api/thoughtdetails/thought/${thoughtId}`
         );
         setDetails(detailsResponse.data.sort((a, b) => a.sortOrder - b.sortOrder));
+
+        // Fetch website links
+        const linksResponse = await apiClient.get<ThoughtWebsiteLink[]>(
+          `api/thoughtwebsitelinks/thought/${thoughtId}`
+        );
+        setWebsiteLinks(linksResponse.data.sort((a, b) => a.sortOrder - b.sortOrder));
       } catch (err) {
         setError(
           err instanceof Error
@@ -122,72 +130,158 @@ const ThoughtViewer = (props?: ThoughtViewerProps) => {
   };
 
   return (
-    <Box>
-      {/* Category (Bucket) and Edit Icon */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Thought Section */}
+      <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title="Edit Thought">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=0`)}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        
+        {/* Category (Bucket) */}
         {thought.bucket && (
-          <Chip
-            label={thought.bucket.description}
-            color="primary"
-            variant="outlined"
-          />
+          <Box sx={{ mb: 2 }}>
+            <Chip
+              label={thought.bucket.description}
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
         )}
-        <Tooltip title="Edit Thought">
-          <IconButton
-            color="primary"
-            onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=0`)}
-          >
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
 
-      {/* Header with Description and Date */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" component="h1" sx={{ flex: 1, pr: 2 }}>
-          {thought.description || 'Untitled Thought'}
-        </Typography>
-        {thought.thoughtDate && (
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', mt: 0.5 }}>
-            {formatDate(thought.thoughtDate)}
+        {/* Header with Description and Date */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            mb: 2,
+          }}
+        >
+          <Typography variant="h5" component="h1" sx={{ flex: 1, pr: 2 }}>
+            {thought.description || 'Untitled Thought'}
           </Typography>
+          {thought.thoughtDate && (
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', mt: 0.5 }}>
+              {formatDate(thought.thoughtDate)}
+            </Typography>
+          )}
+        </Box>
+      </Paper>
+
+      {/* Details Section */}
+      <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title="Edit Details">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=1`)}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {details.length === 0 ? (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              No details available for this thought.
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {details.map((detail) => (
+              <Paper key={detail.id} elevation={1} sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ minWidth: 60, fontWeight: 'medium' }}
+                  >
+                    #{detail.sortOrder}
+                  </Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', flex: 1 }}>
+                    {detail.description || '(No description)'}
+                  </Typography>
+                </Box>
+              </Paper>
+            ))}
+          </Box>
         )}
-      </Box>
+      </Paper>
 
-      {/* Details as Elevated Cards */}
-      {details.length === 0 ? (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="body2" color="text.secondary">
-            No details available for this thought.
-          </Typography>
+      {/* Website Links Section */}
+      <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title="Edit Website Links">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=2`)}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
-      ) : (
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {details.map((detail) => (
-            <Paper key={detail.id} elevation={2} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ minWidth: 60, fontWeight: 'medium' }}
-                >
-                  #{detail.sortOrder}
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', flex: 1 }}>
-                  {detail.description || '(No description)'}
-                </Typography>
-              </Box>
-            </Paper>
-          ))}
-        </Box>
-      )}
+
+        {websiteLinks.length === 0 ? (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              No website links available for this thought.
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {websiteLinks.map((link) => (
+              <Paper key={`${link.thoughtId}-${link.websiteLinkId}`} elevation={1} sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <LinkIcon sx={{ color: 'text.secondary', mt: 0.5 }} />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 0.5, fontWeight: 'medium' }}
+                    >
+                      #{link.sortOrder}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      component="a"
+                      href={link.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        color: 'primary.main',
+                        textDecoration: 'none',
+                        display: 'block',
+                        mb: 0.5,
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      {link.websiteUrl}
+                    </Typography>
+                    {link.description && (
+                      <Typography variant="body2" color="text.secondary">
+                        {link.description}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Paper>
+            ))}
+          </Box>
+        )}
+      </Paper>
     </Box>
   );
 };
