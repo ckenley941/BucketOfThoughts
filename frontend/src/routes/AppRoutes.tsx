@@ -4,17 +4,17 @@ import { auth0Config } from '../config/auth0.config';
 import ProtectedRoute from './ProtectedRoute';
 import MainLayout from '../layouts/MainLayout';
 import LoginLayout from '../layouts/LoginLayout';
-import Home from '../pages/Home';
+import Home from '../pages/HomePage';
 import ThoughtWizard from '../pages/thought-wizard/ThoughtWizard';
-import ThoughtViewer from '../pages/ThoughtViewer';
-import Thoughts from '../pages/Thoughts';
-import ThoughtBuckets from '../pages/ThoughtBuckets';
+import ThoughtViewer from '../pages/ThoughtPage';
+import Thoughts from '../pages/ThoughtsPage';
+import ThoughtBuckets from '../pages/ThoughtBucketsPage';
 import ThoughtBucketForm from '../pages/ThoughtBucketForm';
-import Login from '../pages/Login';
+import Login from '../pages/LoginPage';
 import LoginCallback from '../pages/LoginCallback';
-import Logout from '../pages/Logout';
-import About from '../pages/About';
-import Demo from '../pages/Demo';
+import Logout from '../pages/LogoutPage';
+import About from '../pages/AboutPage';
+import Demo from '../pages/DemoPage';
 
 const AppRoutes = () => {
   return (

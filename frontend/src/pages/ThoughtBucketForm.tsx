@@ -7,7 +7,6 @@ import {
   CircularProgress,
   FormControlLabel,
   Switch,
-  MenuItem,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';

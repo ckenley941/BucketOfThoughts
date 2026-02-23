@@ -16,7 +16,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useSearchParams } from 'react-router-dom';
 import { useApiClient } from '../services/api';
 import { useThoughtBuckets } from '../hooks';
-import ThoughtViewer from './ThoughtViewer';
+import ThoughtViewer from './ThoughtPage';
 import type { Thought } from '../types';
 
 const Home = () => {
