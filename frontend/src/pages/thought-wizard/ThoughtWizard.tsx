@@ -1,5 +1,4 @@
 import {
-  Typography,
   Box,
   IconButton,
   Alert,
@@ -418,11 +417,8 @@ const ThoughtWizard = () => {
 
   return (
     <Box>
-      {/* Header with title and Save and Close button */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          {thoughtId && thoughtId > 0 ? 'Edit Thought' : 'Add a New Thought'}
-        </Typography>
+      {/* Header with Save and Close button */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Tooltip title="Save and Close">
             <IconButton

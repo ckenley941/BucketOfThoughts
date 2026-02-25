@@ -15,9 +15,9 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Search, Add, List as ListIcon, Menu as MenuIcon, Shuffle as ShuffleIcon } from '@mui/icons-material';
+import { Search, Add, List as ListIcon, Menu as MenuIcon, Shuffle as ShuffleIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useThoughtBuckets } from '../hooks';
 
@@ -33,6 +33,7 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
   const [searchText, setSearchText] = useState<string>('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout, user } = useAuth0();
   const { thoughtBuckets, loading: loadingBuckets } = useThoughtBuckets();
 
@@ -41,8 +42,24 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
   };
 
   const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchText, 'in bucket:', bucket);
+    const params = new URLSearchParams();
+    if (searchText && searchText.trim()) {
+      params.set('search', searchText.trim());
+    }
+    if (bucket && bucket !== '') {
+      params.set('bucketId', bucket);
+    }
+    const queryString = params.toString();
+    navigate(`/thoughts${queryString ? `?${queryString}` : ''}`);
+  };
+
+  const handleClearFilters = () => {
+    setSearchText('');
+    setBucket('');
+    // If on thoughts page, navigate to clear URL filters and refresh the data
+    if (location.pathname === '/thoughts') {
+      navigate('/thoughts', { replace: true });
+    }
   };
 
   const handleAddThought = () => {
@@ -186,6 +203,16 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
+                      {(bucket || searchText) && (
+                        <IconButton
+                          onClick={handleClearFilters}
+                          edge="end"
+                          size="small"
+                          sx={{ mr: 0.5 }}
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      )}
                       <IconButton onClick={handleSearch} edge="end">
                         <Search />
                       </IconButton>

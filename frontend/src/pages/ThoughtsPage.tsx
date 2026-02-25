@@ -1,5 +1,4 @@
 import {
-  Typography,
   Box,
   CircularProgress,
   Alert,
@@ -11,25 +10,22 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  TextField,
-  InputAdornment,
-  IconButton,
+  Typography,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import { DataGrid, type GridColDef, type GridRowParams } from '@mui/x-data-grid';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { Thought } from '../types';
 import ThoughtCard from '../components/ThoughtCard';
-import { useThoughtBuckets } from '../hooks';
 
 type ViewMode = 'grid' | 'card';
 
 const ThoughtsPage = () => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -37,10 +33,11 @@ const ThoughtsPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [cardPage, setCardPage] = useState<number>(1);
   const [cardPageSize, setCardPageSize] = useState<number>(12);
-  const [filterBucket, setFilterBucket] = useState<string>('');
-  const [filterDescription, setFilterDescription] = useState<string>('');
   const [filteredThoughts, setFilteredThoughts] = useState<Thought[]>([]);
-  const { thoughtBuckets, loading: loadingBuckets } = useThoughtBuckets();
+  
+  // Get filter values from URL params
+  const filterBucket = searchParams.get('bucketId') || '';
+  const filterDescription = searchParams.get('search') || '';
 
   useEffect(() => {
     const fetchThoughts = async () => {
@@ -65,13 +62,8 @@ const ThoughtsPage = () => {
     fetchThoughts();
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  // Initialize filtered thoughts when thoughts change
+  // Apply filters when thoughts or filter params change
   useEffect(() => {
-    setFilteredThoughts(thoughts);
-  }, [thoughts]);
-
-  // Handle search/filter
-  const handleSearch = () => {
     let filtered = [...thoughts];
 
     // Filter by bucket
@@ -90,7 +82,7 @@ const ThoughtsPage = () => {
 
     setFilteredThoughts(filtered);
     setCardPage(1); // Reset to first page when filtering
-  };
+  }, [thoughts, filterBucket, filterDescription]);
 
   if (loading) {
     return (
@@ -141,9 +133,6 @@ const ThoughtsPage = () => {
   if (error) {
     return (
       <Box>
-        <Typography variant="h4" component="h1" gutterBottom>
-          All Thoughts
-        </Typography>
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
         </Alert>
@@ -153,10 +142,7 @@ const ThoughtsPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          All Thoughts
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <FormControl component="fieldset">
           <RadioGroup
             row
@@ -172,6 +158,23 @@ const ThoughtsPage = () => {
             <FormControlLabel value="grid" control={<Radio />} label="Grid" />
           </RadioGroup>
         </FormControl>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel id="page-size-label">Per Page</InputLabel>
+          <Select
+            labelId="page-size-label"
+            id="page-size-select"
+            value={cardPageSize}
+            label="Per Page"
+            onChange={(e) => {
+              setCardPageSize(Number(e.target.value));
+              setCardPage(1); // Reset to first page when page size changes
+            }}
+          >
+            <MenuItem value={6}>6</MenuItem>
+            <MenuItem value={12}>12</MenuItem>
+            <MenuItem value={18}>18</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {thoughts.length === 0 ? (
@@ -181,7 +184,7 @@ const ThoughtsPage = () => {
       ) : viewMode === 'grid' ? (
         <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid
-            rows={thoughts}
+            rows={filteredThoughts}
             columns={columns}
             getRowId={(row: Thought) => row.id}
             pageSizeOptions={[10, 25, 50, 100]}
@@ -200,89 +203,6 @@ const ThoughtsPage = () => {
         </Box>
       ) : (
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 2, flexWrap: 'wrap' }}>
-            {/* Filters - Left Aligned */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', flex: 1 }}>
-              <Select
-                value={filterBucket}
-                onChange={(e) => setFilterBucket(e.target.value)}
-                displayEmpty
-                disabled={loadingBuckets}
-                size="small"
-                sx={{
-                  minWidth: 150,
-                  backgroundColor: 'white',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(0, 0, 0, 0.23)',
-                  },
-                }}
-              >
-                <MenuItem value="">
-                  <em>All Buckets</em>
-                </MenuItem>
-                {thoughtBuckets.map((thoughtBucket) => (
-                  <MenuItem key={thoughtBucket.id} value={thoughtBucket.id.toString()}>
-                    {thoughtBucket.description || `Bucket #${thoughtBucket.id}`}
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField
-                placeholder="Search description..."
-                value={filterDescription}
-                onChange={(e) => setFilterDescription(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  }
-                }}
-                size="small"
-                sx={{
-                  minWidth: 200,
-                  backgroundColor: 'white',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: 'rgba(0, 0, 0, 0.23)',
-                    },
-                  },
-                }}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={handleSearch}
-                          edge="end"
-                          size="small"
-                          sx={{ mr: -1 }}
-                        >
-                          <SearchIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />              
-            </Box>
-
-            {/* Page Size Selector - Right Aligned */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="page-size-label">Per Page</InputLabel>
-              <Select
-                labelId="page-size-label"
-                id="page-size-select"
-                value={cardPageSize}
-                label="Per Page"
-                onChange={(e) => {
-                  setCardPageSize(Number(e.target.value));
-                  setCardPage(1); // Reset to first page when page size changes
-                }}
-              >
-                <MenuItem value={6}>6</MenuItem>
-                <MenuItem value={12}>12</MenuItem>
-                <MenuItem value={18}>18</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
           
           <Box
             sx={{
