@@ -46,7 +46,7 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
   };
 
   const handleAddThought = () => {
-    navigate('/thought-wizard');
+    navigate('/thought-wizard', { replace: true });
   };
 
   const handleThoughts = () => {
@@ -54,7 +54,12 @@ const Navbar = ({ showSearch = true, onMenuClick }: NavbarProps) => {
   };
 
   const handleRandomThought = () => {
-    navigate('/home?random=true');
+    const params = new URLSearchParams();
+    params.set('random', 'true');
+    if (bucket && bucket !== '') {
+      params.set('bucketId', bucket);
+    }
+    navigate(`/home?${params.toString()}`);
   };
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {

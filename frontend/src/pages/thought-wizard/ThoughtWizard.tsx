@@ -12,7 +12,6 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
-import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -71,9 +70,15 @@ const ThoughtWizard = () => {
     const thoughtIdParam = searchParams.get('thoughtId');
     if (stepParam) {
       setActiveStep(parseInt(stepParam, 10));
+    } else {
+      // Reset to step 0 if no step param
+      setActiveStep(0);
     }
     if (thoughtIdParam) {
       setThoughtId(parseInt(thoughtIdParam, 10));
+    } else {
+      // Reset thoughtId if no thoughtId param
+      setThoughtId(null);
     }
   }, [searchParams]);
 
@@ -413,12 +418,39 @@ const ThoughtWizard = () => {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {thoughtId && thoughtId > 0 ? 'Edit Thought' : 'Add a New Thought'}
-      </Typography>
+      {/* Header with title and Save and Close button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          {thoughtId && thoughtId > 0 ? 'Edit Thought' : 'Add a New Thought'}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Tooltip title="Save and Close">
+            <IconButton
+              color="primary"
+              onClick={handleSaveAndClose}
+              disabled={saving || loading || (activeStep === 0 && (!thoughtData.description?.trim() || !thoughtData.selectedBucket))}
+            >
+              {saving || loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                <SaveIcon />
+              )}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Cancel">
+            <IconButton
+              color="error"
+              onClick={() => navigate('/thoughts')}
+              disabled={saving || loading}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
 
       {/* Stepper */}
-      <Box sx={{ mb: 4, mt: 3 }}>
+      <Box sx={{ mb: 4 }}>
         <Stepper activeStep={activeStep}>
           {steps.map((label, index) => (
             <Step key={label}>
@@ -475,28 +507,6 @@ const ThoughtWizard = () => {
         ) : (
           <></>
         )}
-        <Tooltip title="Save and Close">
-          <IconButton
-            color="primary"
-            onClick={handleSaveAndClose}
-            disabled={saving || loading || (activeStep === 0 && (!thoughtData.description?.trim() || !thoughtData.selectedBucket))}
-          >
-            {saving || loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              <SaveIcon />
-            )}
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Cancel">
-          <IconButton
-            color="error"
-            onClick={() => navigate('/thoughts')}
-            disabled={saving || loading}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Tooltip>
       </Box>
     </Box>
   );
