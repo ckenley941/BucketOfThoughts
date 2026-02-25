@@ -337,6 +337,7 @@ const ThoughtWizard = () => {
               stepRefs.current[1] = ref;
             }}
             thoughtId={thoughtId}
+            textType={thoughtData.textType}
           />
         ) : null;
       case 2:

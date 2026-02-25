@@ -30,11 +30,17 @@ export interface ThoughtBucket {
   showOnDashboard: boolean;
 }
 
+export interface JsonDetail {
+  keys: string[];
+  json: string;
+}
+
 export interface ThoughtDetail {
   id: number;
   description: string;
   thoughtId: number;
   sortOrder: number;
+  jsonDetail?: JsonDetail;
 }
 
 export interface ThoughtWebsiteLink {

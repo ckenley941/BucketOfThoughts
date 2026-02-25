@@ -84,7 +84,7 @@ public class ThoughtDetailsController(IThoughtDetailService thoughtDetailService
     /// <returns></returns>
     [HttpPost]
     [ProducesResponseType<ThoughtDetailDto>((int)HttpStatusCode.OK)]
-    public async Task<ActionResult<ThoughtDetailDto>> Post(ThoughtDetailDto thoughtDetail)
+    public async Task<ActionResult<ThoughtDetailDto>> Post(InsertThoughtDetailDto thoughtDetail)
     {
         userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
         var serviceResult = await thoughtDetailService.AddThoughtDetail(thoughtDetail);

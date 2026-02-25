@@ -131,19 +131,24 @@ const ThoughtPage = (props?: ThoughtProps) => {
     }
   };
 
+  // Only show back button when accessed via route (not when used as a component from HomePage)
+  const isEmbedded = propThoughtId !== undefined;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Back Button */}
-      <Box sx={{ mb: -2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/thoughts')}
-          variant="outlined"
-          size="small"
-        >
-          Back to Thoughts
-        </Button>
-      </Box>
+      {/* Back Button - Only show when not embedded (i.e., accessed via route) */}
+      {!isEmbedded && (
+        <Box sx={{ mb: -2 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/thoughts')}
+            variant="outlined"
+            size="small"
+          >
+            Back to Thoughts
+          </Button>
+        </Box>
+      )}
 
       {/* Thought Section */}
       <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>

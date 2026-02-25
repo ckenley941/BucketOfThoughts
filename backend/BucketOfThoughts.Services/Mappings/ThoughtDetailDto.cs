@@ -2,6 +2,13 @@ using BucketOfThoughts.Data.Entities;
 
 namespace BucketOfThoughts.Services.Mappings;
 
+public partial class InsertThoughtDetailDto : ThoughtDetailDto
+{
+    public new string? Description { get; set; }
+    public JsonDetail JsonDetails { get; set; } = new();
+    public string TextType { get; set; } = null!;
+}
+
 public partial class ThoughtDetailDto : BaseDto
 {
     public string Description { get; set; } = null!;

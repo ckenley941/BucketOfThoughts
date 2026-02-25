@@ -13,7 +13,7 @@ public interface IThoughtDetailService
     Task<ApplicationServiceResult<ThoughtDetailDto>> GetThoughtDetails();
     Task<ApplicationServiceResult<ThoughtDetailDto>> GetThoughtDetailsByThoughtId(long thoughtId);
     Task<ApplicationServiceResult<ThoughtDetailDto>> GetThoughtDetailById(long id);
-    Task<ApplicationServiceResult<ThoughtDetailDto>> AddThoughtDetail(ThoughtDetailDto thoughtDetailDto);
+    Task<ApplicationServiceResult<ThoughtDetailDto>> AddThoughtDetail(InsertThoughtDetailDto thoughtDetailDto);
     Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(ThoughtDetailDto thoughtDetailDto);
     Task<BaseApplicationServiceResult> DeleteThoughtDetail(long id);
 }
@@ -66,7 +66,7 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
         return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetail);
     }
 
-    public async Task<ApplicationServiceResult<ThoughtDetailDto>> AddThoughtDetail(ThoughtDetailDto thoughtDetailDto)
+    public async Task<ApplicationServiceResult<ThoughtDetailDto>> AddThoughtDetail(InsertThoughtDetailDto thoughtDetailDto)
     {
         if (!await IsValidThoughtUser(thoughtDetailDto.ThoughtId))
         {
@@ -77,11 +77,42 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             };
         }
 
-        var entity = thoughtDetailDto.MapInsert();
-        dbContext.ThoughtDetails.Add(entity);
-        await dbContext.SaveChangesAsync();
-        thoughtDetailDto.Id = entity.Id;
+        if (thoughtDetailDto.TextType == "Json")
+        {
+            var i = 0;
+            thoughtDetailDto.JsonDetails.Keys.ForEach((k) =>
+            {
+                i++;
+                thoughtDetailDto.JsonDetails.Json = thoughtDetailDto.JsonDetails.Json.Replace($"Column{i}", k);
+            });
+
+            var jsonHeader = new ThoughtDetail
+            {
+                ThoughtId = thoughtDetailDto.ThoughtId,
+                Description = string.Join("|", thoughtDetailDto.JsonDetails.Keys),
+                SortOrder = 1
+            };
+            var jsonDetail = new ThoughtDetail
+            {
+                ThoughtId = thoughtDetailDto.ThoughtId,
+                Description = thoughtDetailDto.JsonDetails.Json,
+                SortOrder = 2
+            };
+            dbContext.ThoughtDetails.AddRange([jsonHeader, jsonDetail]);
+            await dbContext.SaveChangesAsync();
+            thoughtDetailDto.Id = jsonHeader.Id;
+        }
+        else
+        {
+            var entity = thoughtDetailDto.MapInsert();
+            dbContext.ThoughtDetails.Add(entity);
+            await dbContext.SaveChangesAsync();
+            thoughtDetailDto.Id = entity.Id;
+        }
+        
         return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
+        
+        
     }
 
     public async Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(ThoughtDetailDto thoughtDetailDto)

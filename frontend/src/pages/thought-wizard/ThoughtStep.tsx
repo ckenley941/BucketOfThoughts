@@ -50,6 +50,13 @@ const ThoughtStep = ({
     }
   }, [loadingBuckets, thoughtBuckets.length, data.selectedBucket, onDataChange]);
 
+  // Set default textType to 'PlainText' if empty
+  useEffect(() => {
+    if (!data.textType) {
+      onDataChange({ textType: 'PlainText' });
+    }
+  }, [data.textType, onDataChange]);
+
   return (
     <Box component="form" sx={{ mt: 3, maxWidth: 600 }}>
       {loadingThought && (
@@ -96,15 +103,18 @@ const ThoughtStep = ({
           )}
         </Select>
       </FormControl>
-      <TextField
-        fullWidth
-        label="Text Type"
-        value={data.textType}
-        onChange={(e) => onDataChange({ textType: e.target.value })}
-        margin="normal"
-        helperText="Default: PlainText"
-        disabled={loadingThought}
-      />
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Details Type</InputLabel>
+        <Select
+          value={data.textType || 'PlainText'}
+          label="Details Type"
+          onChange={(e) => onDataChange({ textType: e.target.value })}
+          disabled={loadingThought}
+        >
+          <MenuItem value="PlainText">Text</MenuItem>
+          <MenuItem value="Json">Table</MenuItem>
+        </Select>
+      </FormControl>
       <TextField
         fullWidth
         label="Thought Date"
