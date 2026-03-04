@@ -14,7 +14,7 @@ public interface IThoughtDetailService
     Task<ApplicationServiceResult<ThoughtDetailDto>> GetThoughtDetailsByThoughtId(long thoughtId);
     Task<ApplicationServiceResult<ThoughtDetailDto>> GetThoughtDetailById(long id);
     Task<ApplicationServiceResult<ThoughtDetailDto>> AddThoughtDetail(InsertThoughtDetailDto thoughtDetailDto);
-    Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(ThoughtDetailDto thoughtDetailDto);
+    Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(InsertThoughtDetailDto thoughtDetailDto);
     Task<BaseApplicationServiceResult> DeleteThoughtDetail(long id);
 }
 
@@ -101,6 +101,7 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             dbContext.ThoughtDetails.AddRange([jsonHeader, jsonDetail]);
             await dbContext.SaveChangesAsync();
             thoughtDetailDto.Id = jsonHeader.Id;
+            return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
         }
         else
         {
@@ -108,30 +109,81 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             dbContext.ThoughtDetails.Add(entity);
             await dbContext.SaveChangesAsync();
             thoughtDetailDto.Id = entity.Id;
+            return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
         }
-        
-        return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
-        
-        
     }
 
-    public async Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(ThoughtDetailDto thoughtDetailDto)
+    public async Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(InsertThoughtDetailDto thoughtDetailDto)
     {
-        if (!await IsValidUser(thoughtDetailDto.Id))
+        if (thoughtDetailDto.TextType == "Json")
         {
-            return new ApplicationServiceResult<ThoughtDetailDto>
+            // For Json type, validate ThoughtId ownership first
+            if (!await IsValidThoughtUser(thoughtDetailDto.ThoughtId))
             {
-                StatusCode = ServiceStatusCodes.UserForbidden,
-                ErrorMessage = ApplicationServiceMessages.UserForbidden
-            };
-        }
+                return new ApplicationServiceResult<ThoughtDetailDto>
+                {
+                    StatusCode = ServiceStatusCodes.UserForbidden,
+                    ErrorMessage = ApplicationServiceMessages.UserForbidden
+                };
+            }
 
-        var thoughtDetailDbRow = await dbContext.ThoughtDetails
-            .SingleAsync(td => td.Id == thoughtDetailDto.Id && td.Thought.LoginProfileId == userSessionProvider.LoginProfileId && !td.IsDeleted);
-        var entity = thoughtDetailDto.MapUpdate(thoughtDetailDbRow);
-        dbContext.ThoughtDetails.Update(entity);
-        await dbContext.SaveChangesAsync();
-        return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
+            // For Json type, we need to update both the header (SortOrder 1) and detail (SortOrder 2) records
+            // Find both records by ThoughtId and SortOrder
+            var existingHeader = await dbContext.ThoughtDetails
+                .SingleOrDefaultAsync(td => td.ThoughtId == thoughtDetailDto.ThoughtId && td.SortOrder == 1 && !td.IsDeleted);
+            var existingDetail = await dbContext.ThoughtDetails
+                .SingleOrDefaultAsync(td => td.ThoughtId == thoughtDetailDto.ThoughtId && td.SortOrder == 2 && !td.IsDeleted);
+
+            if (existingHeader == null || existingDetail == null)
+            {
+                return new ApplicationServiceResult<ThoughtDetailDto>
+                {
+                    StatusCode = ServiceStatusCodes.InternalServerError,
+                    ErrorMessage = "Json detail records not found for update"
+                };
+            }
+
+            // Replace Column placeholders with actual column names
+            var i = 0;
+            thoughtDetailDto.JsonDetails.Keys.ForEach((k) =>
+            {
+                i++;
+                thoughtDetailDto.JsonDetails.Json = thoughtDetailDto.JsonDetails.Json.Replace($"Column{i}", k);
+            });
+
+            // Update header record
+            existingHeader.Description = string.Join("|", thoughtDetailDto.JsonDetails.Keys);
+            existingHeader.SortOrder = 1;
+
+            // Update detail record
+            existingDetail.Description = thoughtDetailDto.JsonDetails.Json;
+            existingDetail.SortOrder = 2;
+
+            dbContext.ThoughtDetails.UpdateRange([existingHeader, existingDetail]);
+            await dbContext.SaveChangesAsync();
+            thoughtDetailDto.Id = existingHeader.Id;
+
+            return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
+        }
+        else
+        {
+            // For PlainText type, validate by detail Id
+            if (!await IsValidUser(thoughtDetailDto.Id))
+            {
+                return new ApplicationServiceResult<ThoughtDetailDto>
+                {
+                    StatusCode = ServiceStatusCodes.UserForbidden,
+                    ErrorMessage = ApplicationServiceMessages.UserForbidden
+                };
+            }
+
+            var thoughtDetailDbRow = await dbContext.ThoughtDetails
+                .SingleAsync(td => td.Id == thoughtDetailDto.Id && td.Thought.LoginProfileId == userSessionProvider.LoginProfileId && !td.IsDeleted);
+            var entity = thoughtDetailDto.MapUpdate(thoughtDetailDbRow);
+            dbContext.ThoughtDetails.Update(entity);
+            await dbContext.SaveChangesAsync();
+            return new ApplicationServiceResult<ThoughtDetailDto>(thoughtDetailDto);
+        }
     }
 
     public async Task<BaseApplicationServiceResult> DeleteThoughtDetail(long id)
@@ -171,7 +223,8 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             Id = td.Id,
             Description = td.Description,
             ThoughtId = td.ThoughtId,
-            SortOrder = td.SortOrder
+            SortOrder = td.SortOrder,
+            TextType = td.Thought.TextType
         };
 }
 

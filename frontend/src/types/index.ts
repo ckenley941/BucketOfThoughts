@@ -40,6 +40,7 @@ export interface ThoughtDetail {
   description: string;
   thoughtId: number;
   sortOrder: number;
+  textType: string;
   jsonDetail?: JsonDetail;
 }
 

@@ -20,7 +20,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../../services/api';
-import type { ThoughtDetail, JsonDetail } from '../../types';
+import type { ThoughtDetail, Thought } from '../../types';
 
 interface LocalThoughtDetail extends Omit<ThoughtDetail, 'id'> {
   id: number | string;
@@ -40,12 +40,11 @@ export interface DetailsStepHandle {
 
 interface DetailsStepProps {
   thoughtId: number;
-  textType?: string;
   onDetailsChange?: (details: LocalThoughtDetail[]) => void;
 }
 
 const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
-  ({ thoughtId, textType = 'PlainText', onDetailsChange }, ref) => {
+  ({ thoughtId, onDetailsChange }, ref) => {
     const apiClient = useApiClient();
     const { isAuthenticated } = useAuth0();
     const [details, setDetails] = useState<LocalThoughtDetail[]>([]);
@@ -61,6 +60,15 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
       columns: [],
       rows: [],
     });
+    
+    // Store textType from Thought when no details are found
+    const [thoughtTextType, setThoughtTextType] = useState<string>('PlainText');
+    
+    // Get textType from the first detail (all details for a thought share the same textType)
+    // If no details, use the textType from Thought
+    const textType = details.length > 0 
+      ? details[0].textType || 'PlainText' 
+      : thoughtTextType;
 
     useEffect(() => {
       if (!isAuthenticated || !thoughtId) {
@@ -75,7 +83,29 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
             `api/thoughtdetails/thought/${thoughtId}`
           );
           
-          if (textType === 'Json') {
+          // Determine textType from the fetched details
+          let currentTextType: string;
+          if (response.data.length > 0 && response.data[0].textType) {
+            currentTextType = response.data[0].textType;
+          } else {
+            // No details found, fetch Thought to get textType
+            try {
+              const thoughtResponse = await apiClient.get<Thought>(
+                `api/thoughts/${thoughtId}`
+              );
+              const thoughtData = Array.isArray(thoughtResponse.data)
+                ? thoughtResponse.data[0]
+                : thoughtResponse.data;
+              currentTextType = thoughtData?.textType || 'PlainText';
+              setThoughtTextType(currentTextType);
+            } catch (thoughtErr) {
+              // If Thought fetch fails, default to PlainText
+              currentTextType = 'PlainText';
+              setThoughtTextType('PlainText');
+            }
+          }
+          
+          if (currentTextType === 'Json') {
             // Parse Json type: first detail (sortOrder 1) has column names, second (sortOrder 2) has JSON
             const sortedDetails = [...response.data].sort((a, b) => a.sortOrder - b.sortOrder);
             const headerDetail = sortedDetails.find((d) => d.sortOrder === 1);
@@ -141,7 +171,7 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
       };
 
       fetchDetails();
-    }, [isAuthenticated, thoughtId, textType, apiClient, onDetailsChange]);
+    }, [isAuthenticated, thoughtId, apiClient, onDetailsChange]);
 
     const handleAddDetail = () => {
       if (textType === 'Json') {
@@ -161,6 +191,7 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
           thoughtId: thoughtId,
           sortOrder:
             details.length > 0 ? Math.max(...details.map((d) => d.sortOrder)) + 1 : 1,
+          textType: textType,
           isNew: true,
           isExpanded: true,
         };
@@ -453,6 +484,7 @@ const DetailsStep = forwardRef<DetailsStepHandle, DetailsStepProps>(
               description: detail.description.trim(),
               thoughtId: detail.thoughtId,
               sortOrder: detail.sortOrder,
+              textType: detail.textType,
             };
 
             if (detail.isNew) {

@@ -15,6 +15,7 @@ import LoginCallback from '../pages/LoginCallback';
 import LogoutPage from '../pages/LogoutPage';
 import AboutPage from '../pages/AboutPage';
 import DemoPage from '../pages/DemoPage';
+import ApiErrorPage from '../pages/ApiErrorPage';
 
 const AppRoutes = () => {
   return (
@@ -54,6 +55,14 @@ const AppRoutes = () => {
         />
         <Route path="/login-callback" element={<LoginCallback />} />
         <Route path="/logout" element={<LogoutPage />} />
+        <Route
+          path="/api-error"
+          element={
+            <LoginLayout>
+              <ApiErrorPage />
+            </LoginLayout>
+          }
+        />
 
         {/* Protected routes */}
         <Route

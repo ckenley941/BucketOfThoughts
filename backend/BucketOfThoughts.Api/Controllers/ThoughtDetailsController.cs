@@ -106,7 +106,7 @@ public class ThoughtDetailsController(IThoughtDetailService thoughtDetailService
     /// <returns></returns>
     [HttpPut]
     [ProducesResponseType<ThoughtDetailDto>((int)HttpStatusCode.OK)]
-    public async Task<ActionResult<ThoughtDetailDto>> Put(ThoughtDetailDto thoughtDetail)
+    public async Task<ActionResult<ThoughtDetailDto>> Put(InsertThoughtDetailDto thoughtDetail)
     {
         userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
         var serviceResult = await thoughtDetailService.UpdateThoughtDetail(thoughtDetail);

@@ -67,15 +67,7 @@ export const useApiClient = (): AxiosInstance => {
           !error.response
         ) {
           console.error('Network error detected - redirecting to error page');
-
-          // Don't redirect to error page if we're on payment success page
-          // This allows the payment success page to handle its own retry logic
-          // if (
-          //   window.location.pathname !== '/api-error' &&
-          //   window.location.pathname !== '/payment-success'
-          // ) {
-          //   window.location.href = '/api-error';
-          // }
+          window.location.href = '/api-error';
         }
 
         return Promise.reject(error);
