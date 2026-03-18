@@ -77,7 +77,7 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             };
         }
 
-        if (thoughtDetailDto.TextType == "Json")
+        if (thoughtDetailDto.TextType == TextTypes.Json)
         {
             var i = 0;
             thoughtDetailDto.JsonDetails.Keys.ForEach((k) =>
@@ -115,7 +115,7 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
 
     public async Task<ApplicationServiceResult<ThoughtDetailDto>> UpdateThoughtDetail(InsertThoughtDetailDto thoughtDetailDto)
     {
-        if (thoughtDetailDto.TextType == "Json")
+        if (thoughtDetailDto.TextType == TextTypes.Json)
         {
             // For Json type, validate ThoughtId ownership first
             if (!await IsValidThoughtUser(thoughtDetailDto.ThoughtId))

@@ -8,8 +8,7 @@ public partial class Thought : BaseUserDbTable
     public string Description { get; set; } = null!;
     public long ThoughtBucketId { get; set; }
     public virtual ThoughtBucket Bucket { get; set; } = null!;
-    [MaxLength(25)]
-    public string TextType { get; set; } = "PlainText";
+    public string TextType { get; set; } = TextTypes.PlainText;
     public DateTime ThoughtDate { get; set; }
     public bool ShowOnDashboard { get; set; }
     public bool IsDeleted { get; set; } = false;

@@ -17,6 +17,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { Thought, ThoughtDetail, ThoughtWebsiteLink } from '../types';
 import LinkIcon from '@mui/icons-material/Link';
+import JsonThoughtDetailsGrid from '../components/JsonThoughtDetailsGrid';
 
 interface ThoughtProps {
   thoughtId?: number;
@@ -215,6 +216,8 @@ const ThoughtPage = (props?: ThoughtProps) => {
               No details available for this thought.
             </Typography>
           </Box>
+        ) : thought.textType === 'Json' ? (
+          <JsonThoughtDetailsGrid details={details} />
         ) : (
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {details.map((detail) => (

@@ -57,6 +57,10 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
                 .WithMany(lp => lp.Thoughts)
                 .HasForeignKey(t => t.LoginProfileId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure TextType string with max length
+            entity.Property(e => e.TextType)
+                .HasMaxLength(25);
         });
 
         // Configure ThoughtBucket relationships

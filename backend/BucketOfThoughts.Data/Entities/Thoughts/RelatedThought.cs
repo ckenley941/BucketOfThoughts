@@ -6,4 +6,5 @@ public partial class RelatedThought : BaseDbTable
     public long RelatedThoughtId { get; set; }
     public Thought ParentThought { get; set; } = null!;
     public Thought RelatedThoughtEntity { get; set; } = null!;
+    public int SortOrder { get; set; }
 }

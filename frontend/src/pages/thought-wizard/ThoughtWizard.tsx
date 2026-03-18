@@ -239,8 +239,6 @@ const ThoughtWizard = () => {
           sortOrder: thoughtData.selectedBucket.sortOrder,
           showOnDashboard: thoughtData.selectedBucket.showOnDashboard,
         },
-        details: [],
-        websiteLinks: [],
       };
 
       let response;
