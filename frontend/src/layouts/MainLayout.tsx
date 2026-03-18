@@ -1,7 +1,7 @@
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
+import RecentThoughtsSidebar from '../components/RecentThoughtsSidebar';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar onMenuClick={isMobile ? handleDrawerToggle : undefined} />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
-        <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
+        <RecentThoughtsSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
         <Box
           component="main"
           sx={{

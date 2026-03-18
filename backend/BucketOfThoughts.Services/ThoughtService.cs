@@ -17,9 +17,10 @@ public interface IThoughtService
     Task<BaseApplicationServiceResult> DeleteThought(long id);
     Task<ApplicationServiceResult<RecentThoughtDto>> GetRecentThoughts();
     Task<ApplicationServiceResult<ThoughtDto>> GetRandomThought(long? bucketId = null);
+    Task MarkThoughtAsViewedAsync(long thoughtId);
 }
 
-public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider): IThoughtService
+public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider, ICacheService cacheService): IThoughtService
 {
     public async Task<ApplicationServiceResult<ThoughtDto>> GetThoughts()
     {
@@ -60,6 +61,9 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
             .Where(t => t.Id == entity.Id && t.LoginProfileId == userSessionProvider.LoginProfileId)
             .Select(SelectFullThought)
             .SingleAsync();
+        
+        // Cache as Added
+        await CacheRecentThoughtAsync(savedThought, RecentThoughtStatus.Added);
         
         return new ApplicationServiceResult<ThoughtDto>(savedThought);
     }
@@ -107,17 +111,19 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
 
     public async Task<ApplicationServiceResult<RecentThoughtDto>> GetRecentThoughts()
     {
-        var recentThoughts = await dbContext.Thoughts
-            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted)
-            .OrderByDescending(t => t.CreatedDateTime)
-            .Take(10)
-            .Select(t => new RecentThoughtDto
+        var userId = userSessionProvider.LoginProfileId;
+        var keys = await cacheService.GetUserRecentThoughtKeysAsync(userId);
+        
+        var recentThoughts = new List<RecentThoughtDto>();
+        foreach (var key in keys)
+        {
+            var cachedThought = await cacheService.GetAsync<RecentThoughtDto>(key);
+            if (cachedThought != null)
             {
-                Id = t.Id,
-                Description = t.Description,
-                Bucket = t.Bucket.Description
-            })
-            .ToListAsync();
+                recentThoughts.Add(cachedThought);
+            }
+        }
+        
         return new ApplicationServiceResult<RecentThoughtDto>(recentThoughts);
     }
 
@@ -155,7 +161,61 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
             };
         }
 
+        // Cache as Random
+        await CacheRecentThoughtAsync(thought, RecentThoughtStatus.Random);
+
         return new ApplicationServiceResult<ThoughtDto>(thought);
+    }
+
+    public async Task MarkThoughtAsViewedAsync(long thoughtId)
+    {
+        var userId = userSessionProvider.LoginProfileId;
+        var cacheKey = $"{userId}_{thoughtId}";
+        
+        // Check if exists in cache
+        var existing = await cacheService.GetAsync<RecentThoughtDto>(cacheKey);
+        
+        if (existing != null)
+        {
+            // Update status and move to top
+            existing.Status = RecentThoughtStatus.Viewed;
+            await cacheService.SetAsync(cacheKey, existing);
+            await cacheService.AddUserRecentThoughtKeyAsync(userId, cacheKey);
+        }
+        else
+        {
+            // Get thought from database and cache it
+            var thought = await dbContext.Thoughts
+                .Where(t => t.Id == thoughtId && t.LoginProfileId == userId && !t.IsDeleted)
+                .Select(SelectFullThought)
+                .FirstOrDefaultAsync();
+            
+            if (thought != null)
+            {
+                await CacheRecentThoughtAsync(thought, RecentThoughtStatus.Viewed);
+            }
+        }
+    }
+
+    private async Task CacheRecentThoughtAsync(ThoughtDto thought, RecentThoughtStatus status)
+    {
+        var userId = userSessionProvider.LoginProfileId;
+        var cacheKey = $"{userId}_{thought.Id}";
+        
+        var recentThought = new RecentThoughtDto
+        {
+            Id = thought.Id,
+            Description = thought.Description,
+            TextType = thought.TextType,
+            LoginProfileId = thought.LoginProfileId,
+            ShowOnDashboard = thought.ShowOnDashboard,
+            ThoughtDate = thought.ThoughtDate,
+            Bucket = thought.Bucket,
+            Status = status
+        };
+        
+        await cacheService.SetAsync(cacheKey, recentThought);
+        await cacheService.AddUserRecentThoughtKeyAsync(userId, cacheKey);
     }
 
     private async Task<bool> IsValidUser(long thoughtId)

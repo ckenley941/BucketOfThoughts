@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useSearchParams } from 'react-router-dom';
 import { useApiClient } from '../services/api';
+import { refreshRecentThoughts } from '../hooks';
 import ThoughtPage from './ThoughtPage';
 import type { Thought } from '../types';
 
@@ -41,6 +42,9 @@ const HomePage = () => {
         ? response.data[0]
         : response.data;
       setRandomThought(thoughtData);
+      
+      // Refresh recent thoughts after getting random thought
+      refreshRecentThoughts();
     } catch (err) {
       setError(
         err instanceof Error
@@ -95,7 +99,7 @@ const HomePage = () => {
       )}
 
       {randomThought && (
-        <ThoughtPage thoughtId={randomThought.id} />
+        <ThoughtPage thoughtId={randomThought.id} isRandom={true} />
       )}
     </Box>
   );

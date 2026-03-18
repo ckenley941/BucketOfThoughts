@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
+import { refreshRecentThoughts } from '../hooks';
 import type { Thought, ThoughtDetail, ThoughtWebsiteLink, RelatedThought } from '../types';
 import LinkIcon from '@mui/icons-material/Link';
 import JsonThoughtDetailsGrid from '../components/JsonThoughtDetailsGrid';
@@ -22,10 +23,11 @@ import ThoughtCard from '../components/ThoughtCard';
 
 interface ThoughtProps {
   thoughtId?: number;
+  isRandom?: boolean;
 }
 
 const ThoughtPage = (props?: ThoughtProps) => {
-  const { thoughtId: propThoughtId } = props || {};
+  const { thoughtId: propThoughtId, isRandom = false } = props || {};
   const { id } = useParams<{ id: string }>();
   const routeThoughtId = id ? parseInt(id, 10) : 0;
   const thoughtId = propThoughtId ?? routeThoughtId;
@@ -80,6 +82,18 @@ const ThoughtPage = (props?: ThoughtProps) => {
         );
         const relatedData = Array.isArray(relatedResponse.data) ? relatedResponse.data : [relatedResponse.data];
         setRelatedThoughts(relatedData);
+
+        // Mark thought as viewed (skip if this is a random thought)
+        if (!isRandom) {
+          try {
+            await apiClient.post(`api/thoughts/${thoughtId}/viewed`);
+            // Refresh recent thoughts after marking as viewed
+            refreshRecentThoughts();
+          } catch (viewErr) {
+            // Silently fail - viewing is not critical
+            console.error('Failed to mark thought as viewed:', viewErr);
+          }
+        }
       } catch (err) {
         setError(
           err instanceof Error

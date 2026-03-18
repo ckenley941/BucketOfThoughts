@@ -25,12 +25,45 @@ import type { RecentThought } from '../types';
 const drawerWidth = 240;
 const collapsedWidth = 64;
 
-interface SidebarProps {
+const getStatusLabel = (status: string | number | undefined): string => {
+  if (status === undefined || status === null || status === '') return '';
+  
+  // Handle numeric enum values (0 = Added, 1 = Viewed, 2 = Random)
+  if (status === 0 || status === '0') return 'Added';
+  if (status === 1 || status === '1') return 'Viewed';
+  if (status === 2 || status === '2') return 'Random';
+  
+  // Handle string enum values
+  const statusStr = String(status).toLowerCase().trim();
+  if (statusStr === 'added') return 'Added';
+  if (statusStr === 'viewed') return 'Viewed';
+  if (statusStr === 'random') return 'Random';
+  
+  // Fallback: capitalize first letter if it's a valid status
+  return statusStr.charAt(0).toUpperCase() + statusStr.slice(1);
+};
+
+const getStatusColor = (status: string | number | undefined): 'success' | 'info' | 'warning' => {
+  if (status === undefined || status === null || status === '') return 'warning';
+  
+  // Handle numeric enum values (0 = Added, 1 = Viewed, 2 = Random)
+  if (status === 0 || status === '0') return 'success';
+  if (status === 1 || status === '1') return 'info';
+  if (status === 2 || status === '2') return 'warning';
+  
+  // Handle string enum values
+  const statusStr = String(status).toLowerCase().trim();
+  if (statusStr === 'added') return 'success';
+  if (statusStr === 'viewed') return 'info';
+  return 'warning'; // Random or unknown
+};
+
+interface RecentThoughtsSidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
 
-const Sidebar = ({ mobileOpen, onMobileClose }: SidebarProps) => {
+const RecentThoughtsSidebar = ({ mobileOpen, onMobileClose }: RecentThoughtsSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const apiClient = useApiClient();
@@ -172,15 +205,24 @@ const Sidebar = ({ mobileOpen, onMobileClose }: SidebarProps) => {
                       </Typography>
                     ) : (
                       <>
-                        {thought.bucket && (
-                          <Chip
-                            label={thought.bucket}
-                            color="primary"
-                            variant="outlined"
-                            size="small"
-                            sx={{ mb: 0.5 }}
-                          />
-                        )}
+                        <Box sx={{ display: 'flex', gap: 0.5, mb: 0.5, flexWrap: 'wrap' }}>
+                          {thought.bucket && (
+                            <Chip
+                              label={thought.bucket.description}
+                              color="primary"
+                              variant="outlined"
+                              size="small"
+                            />
+                          )}
+                          {(thought.status !== undefined && thought.status !== null && thought.status !== '') && (
+                            <Chip
+                              label={getStatusLabel(thought.status)}
+                              color={getStatusColor(thought.status)}
+                              size="small"
+                              variant="filled"
+                            />
+                          )}
+                        </Box>
                         <ListItemText
                           primary={thought.description || `Thought #${thought.id}`}
                           primaryTypographyProps={{
@@ -243,9 +285,4 @@ const Sidebar = ({ mobileOpen, onMobileClose }: SidebarProps) => {
   );
 };
 
-export default Sidebar;
-
-
-
-
-
+export default RecentThoughtsSidebar;

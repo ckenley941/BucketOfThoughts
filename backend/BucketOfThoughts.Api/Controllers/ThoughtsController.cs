@@ -164,4 +164,18 @@ public class ThoughtsController(IThoughtService thoughtService, IUserSessionProv
             return new EmptyResult();
         }
     }
+
+    /// <summary>
+    /// Marks a thought as viewed and adds it to recent thoughts cache
+    /// </summary>
+    /// <param name="id">The thought ID</param>
+    /// <returns></returns>
+    [HttpPost("{id}/viewed")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<ActionResult> MarkAsViewed(long id)
+    {
+        userSessionProvider.SetCurrentUser(HttpContext.GetCurrentUser());
+        await thoughtService.MarkThoughtAsViewedAsync(id);
+        return Ok();
+    }
 }

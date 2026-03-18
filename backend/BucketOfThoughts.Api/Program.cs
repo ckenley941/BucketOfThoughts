@@ -8,10 +8,17 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 var uiAppUrl = builder.Configuration["UI_APP_URL"] ?? throw new ArgumentNullException("UI_APP_URL is missing");
 
@@ -36,6 +43,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<BucketOfThoughtsDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IThoughtService, ThoughtService>();
 builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
 builder.Services.AddScoped<IThoughtDetailService, ThoughtDetailService>();

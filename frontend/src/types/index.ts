@@ -15,10 +15,10 @@ export interface Thought {
   websiteLinks?: ThoughtWebsiteLink[];
 }
 
-export interface RecentThought {
-  id: number;
-  description: string;
-  bucket: string;
+export type RecentThoughtStatus = 'Added' | 'Viewed' | 'Random' | string | number;
+
+export interface RecentThought extends Thought {
+  status: RecentThoughtStatus;
 }
 
 export interface ThoughtBucket {

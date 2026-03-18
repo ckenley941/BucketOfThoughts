@@ -1,8 +1,14 @@
 namespace BucketOfThoughts.Services.Mappings;
 
-public class RecentThoughtDto : BaseDto
+public enum RecentThoughtStatus
 {
-    public string Description { get; set; } = null!;
-    public string Bucket { get; set; } = null!;
+    Added,
+    Viewed,
+    Random
+}
+
+public class RecentThoughtDto : ThoughtDto
+{
+    public RecentThoughtStatus Status { get; set; }
 }
 
