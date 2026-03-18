@@ -7,16 +7,21 @@ import {
   AccordionSummary,
   AccordionDetails,
   Box,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import DeleteIcon from '@mui/icons-material/Delete';
 import type { Thought } from '../types';
 
 interface ThoughtCardProps {
   thought: Thought;
   onClick?: () => void;
+  allowDelete?: boolean;
+  handleDelete?: () => void;
 }
 
-const ThoughtCard = ({ thought, onClick }: ThoughtCardProps) => {
+const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: ThoughtCardProps) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -37,9 +42,40 @@ const ThoughtCard = ({ thought, onClick }: ThoughtCardProps) => {
         mb: 2,
         cursor: onClick ? 'pointer' : 'default',
         '&:hover': onClick ? { boxShadow: 4 } : {},
+        position: 'relative',
       }}
       onClick={onClick}
     >
+      {allowDelete && handleDelete && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete();
+          }}
+        >
+          <Tooltip title="Remove related thought">
+            <IconButton
+              size="small"
+              color="error"
+              sx={{
+                backgroundColor: 'background.paper',
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'error.contrastText',
+                },
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
       <CardContent>
         {/* Bucket */}
         {thought.bucket && (

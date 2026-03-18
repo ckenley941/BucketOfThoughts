@@ -5,6 +5,7 @@
         Success,
         InternalServerError,
         UserForbidden,
-        Unauthorized
+        Unauthorized,
+        NotFound
     }
 }

@@ -15,9 +15,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
-import type { Thought, ThoughtDetail, ThoughtWebsiteLink } from '../types';
+import type { Thought, ThoughtDetail, ThoughtWebsiteLink, RelatedThought } from '../types';
 import LinkIcon from '@mui/icons-material/Link';
 import JsonThoughtDetailsGrid from '../components/JsonThoughtDetailsGrid';
+import ThoughtCard from '../components/ThoughtCard';
 
 interface ThoughtProps {
   thoughtId?: number;
@@ -35,6 +36,7 @@ const ThoughtPage = (props?: ThoughtProps) => {
   const [thought, setThought] = useState<Thought | null>(null);
   const [details, setDetails] = useState<ThoughtDetail[]>([]);
   const [websiteLinks, setWebsiteLinks] = useState<ThoughtWebsiteLink[]>([]);
+  const [relatedThoughts, setRelatedThoughts] = useState<RelatedThought[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,6 +73,13 @@ const ThoughtPage = (props?: ThoughtProps) => {
           `api/thoughtwebsitelinks/thought/${thoughtId}`
         );
         setWebsiteLinks(linksResponse.data.sort((a, b) => a.sortOrder - b.sortOrder));
+
+        // Fetch related thoughts
+        const relatedResponse = await apiClient.get<RelatedThought[]>(
+          `api/relatedthoughts/thought/${thoughtId}`
+        );
+        const relatedData = Array.isArray(relatedResponse.data) ? relatedResponse.data : [relatedResponse.data];
+        setRelatedThoughts(relatedData);
       } catch (err) {
         setError(
           err instanceof Error
@@ -213,7 +222,7 @@ const ThoughtPage = (props?: ThoughtProps) => {
         {details.length === 0 ? (
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              No details available for this thought.
+              No details
             </Typography>
           </Box>
         ) : thought.textType === 'Json' ? (
@@ -257,7 +266,7 @@ const ThoughtPage = (props?: ThoughtProps) => {
         {websiteLinks.length === 0 ? (
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              No website links available for this thought.
+              No website links
             </Typography>
           </Box>
         ) : (
@@ -300,6 +309,53 @@ const ThoughtPage = (props?: ThoughtProps) => {
                   </Box>
                 </Box>
               </Paper>
+            ))}
+          </Box>
+        )}
+      </Paper>
+
+      {/* Related Thoughts Section */}
+      <Paper elevation={3} sx={{ p: 3, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title="Edit Related Thoughts">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => navigate(`/thought-wizard?thoughtId=${thoughtId}&step=3`)}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {relatedThoughts.length === 0 ? (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              No related thoughts 
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              mt: 2,
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(3, 1fr)',
+              },
+              gap: 2,
+            }}
+          >
+            {relatedThoughts.map((relatedThought) => (
+              relatedThought.relatedThought && (
+                <ThoughtCard
+                  key={relatedThought.id}
+                  thought={relatedThought.relatedThought}
+                  allowDelete={false}
+                  onClick={() => navigate(`/thought/${relatedThought.relatedThoughtId}`)}
+                />
+              )
             ))}
           </Box>
         )}

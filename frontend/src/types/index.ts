@@ -52,6 +52,14 @@ export interface ThoughtWebsiteLink {
   sortOrder: number;
 }
 
+export interface RelatedThought {
+  id: number;
+  parentThoughtId: number;
+  relatedThoughtId: number;
+  sortOrder: number;
+  relatedThought?: Thought;
+}
+
 export interface ServiceResponse<T> {
   results: T[];
   isSuccess: boolean;

@@ -40,6 +40,7 @@ builder.Services.AddScoped<IThoughtService, ThoughtService>();
 builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
 builder.Services.AddScoped<IThoughtDetailService, ThoughtDetailService>();
 builder.Services.AddScoped<IThoughtWebsiteLinkService, ThoughtWebsiteLinkService>();
+builder.Services.AddScoped<IRelatedThoughtsService, RelatedThoughtsService>();
 builder.Services.AddScoped<IUserSessionProvider, UserSessionProvider>();
 
 var domain = builder.Configuration["AUTH0_DOMAIN"] ?? throw new ArgumentNullException("AUTH0_DOMAIN is missing");
