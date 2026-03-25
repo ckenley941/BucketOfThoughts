@@ -43,9 +43,10 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
         }
 
         var thought = await dbContext.Thoughts
-            .Where(t => t.Id == id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted )
+            .Where(t => t.Id == id && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted)
             .Select(SelectFullThought)
-            .SingleAsync();        
+            .SingleAsync();
+        
         return new ApplicationServiceResult<ThoughtDto>(thought);
     }
 
@@ -241,16 +242,18 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
             SortOrder = t.Bucket.SortOrder,
             ShowOnDashboard = t.Bucket.ShowOnDashboard
         },
-        //Details = t.Details
-        //    .Where(d => !d.IsDeleted)
-        //    .Select(d => new ThoughtDetailDto
-        //    {
-        //        Id = d.Id,
-        //        Description = d.Description,
-        //        SortOrder = d.SortOrder
-        //    })
-        //    .OrderBy(d => d.SortOrder)
-        //    .ToList(),
+        Details = t.Details
+            .Where(d => !d.IsDeleted)
+            .Select(d => new ThoughtDetailDto
+            {
+                Id = d.Id,
+                Description = d.Description,
+                ThoughtId = d.ThoughtId,
+                SortOrder = d.SortOrder,
+                TextType = t.TextType
+            })
+            .OrderBy(d => d.SortOrder)
+            .ToList()
         //WebsiteLinks = t.WebsiteLinks
         //    .Where(w => !w.IsDeleted)
         //    .Select(w => new ThoughtWebsiteLinkDto

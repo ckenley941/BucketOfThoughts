@@ -217,7 +217,7 @@ public class ThoughtDetailService(BucketOfThoughtsDbContext dbContext, IUserSess
             .CountAsync(t => t.Id == thoughtId && t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted) > 0;
     }
 
-    private static Expression<Func<ThoughtDetail, ThoughtDetailDto>> SelectFullThoughtDetail =
+    internal static Expression<Func<ThoughtDetail, ThoughtDetailDto>> SelectFullThoughtDetail =
         td => new ThoughtDetailDto
         {
             Id = td.Id,

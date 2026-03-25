@@ -10,7 +10,7 @@ public partial class ThoughtDto : BaseDto
     public bool ShowOnDashboard { get; set; } = true;
     public DateTime? ThoughtDate { get; set; }
     public virtual ThoughtBucketDto Bucket { get; set; } = null!;
-    //public virtual ICollection<ThoughtDetailDto> Details { get; set; } = [];
+    public virtual ICollection<ThoughtDetailDto>? Details { get; set; }
     //public virtual ICollection<ThoughtWebsiteLinkDto> WebsiteLinks { get; set; } = [];
 }
 

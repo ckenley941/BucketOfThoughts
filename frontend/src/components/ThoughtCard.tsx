@@ -36,6 +36,12 @@ const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: Th
     }
   };
 
+  const truncateDescription = (description: string | undefined, maxLength: number = 100): string => {
+    if (!description) return '(No description)';
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength) + '...';
+  };
+
   return (
     <Card
       sx={{
@@ -103,7 +109,11 @@ const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: Th
 
         {/* Accordion for Details */}
         {(thought.details && thought.details.length > 0) && (
-          <Accordion>
+          <Accordion
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent card click when accordion is clicked
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="body2" color="text.secondary">
                 View Details ({thought.details.length})
@@ -111,20 +121,34 @@ const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: Th
             </AccordionSummary>
             <AccordionDetails>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {thought.details.map((detail) => (
-                  <Box key={detail.id} sx={{ pl: 2, borderLeft: 2, borderColor: 'divider' }}>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 0.5, fontWeight: 'medium' }}
-                    >
-                      #{detail.sortOrder}
-                    </Typography>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {detail.description || '(No description)'}
-                    </Typography>
-                  </Box>
-                ))}
+                {thought.details.map((detail) => {
+                  const fullDescription = detail.description || '(No description)';
+                  const truncatedDescription = truncateDescription(detail.description);
+                  const isTruncated = fullDescription.length > 100;
+
+                  return (
+                    <Box key={detail.id} sx={{ pl: 2, borderLeft: 2, borderColor: 'divider' }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 0.5, fontWeight: 'medium' }}
+                      >
+                        #{detail.sortOrder}
+                      </Typography>
+                      {isTruncated ? (
+                        <Tooltip title={fullDescription} arrow>
+                          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', cursor: 'help' }}>
+                            {truncatedDescription}
+                          </Typography>
+                        </Tooltip>
+                      ) : (
+                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                          {fullDescription}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })}
               </Box>
             </AccordionDetails>
           </Accordion>

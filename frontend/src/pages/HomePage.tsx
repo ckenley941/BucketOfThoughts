@@ -19,13 +19,20 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasAutoLoaded = useRef(false);
+  const isFetching = useRef(false);
 
   const handleRandomThought = async () => {
+    // Prevent multiple simultaneous calls
+    if (isFetching.current) {
+      return;
+    }
+
     if (!isAuthenticated) {
       setError('You must be logged in to get a random thought.');
       return;
     }
 
+    isFetching.current = true;
     setLoading(true);
     setError(null);
     setRandomThought(null);
@@ -53,34 +60,39 @@ const HomePage = () => {
       );
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   };
 
-  // Auto-fetch random thought if ?random=true is in URL
+  // Combined effect to handle both URL param and first load scenarios
   useEffect(() => {
-    const shouldAutoFetch = searchParams.get('random') === 'true';
-    if (shouldAutoFetch && isAuthenticated) {
-      // Remove the random query parameter but keep bucketId if present
-      const newParams = new URLSearchParams();
-      const bucketId = searchParams.get('bucketId');
-      if (bucketId) {
-        newParams.set('bucketId', bucketId);
-      }
-      setSearchParams(newParams, { replace: true });
-      // Trigger random thought fetch
-      handleRandomThought();
+    if (!isAuthenticated) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, isAuthenticated]);
 
-  // Auto-fetch random thought on first load
-  useEffect(() => {
-    if (isAuthenticated && !hasAutoLoaded.current) {
+    const shouldAutoFetch = searchParams.get('random') === 'true';
+    
+    // If random=true in URL, handle it and prevent first load from running
+    if (shouldAutoFetch) {
+      if (!hasAutoLoaded.current) {
+        hasAutoLoaded.current = true;
+        // Remove the random query parameter but keep bucketId if present
+        const newParams = new URLSearchParams();
+        const bucketId = searchParams.get('bucketId');
+        if (bucketId) {
+          newParams.set('bucketId', bucketId);
+        }
+        setSearchParams(newParams, { replace: true });
+        // Trigger random thought fetch
+        handleRandomThought();
+      }
+    } else if (!hasAutoLoaded.current) {
+      // First load without random param
       hasAutoLoaded.current = true;
       handleRandomThought();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [searchParams, isAuthenticated]);
 
   if (loading) {
     return (

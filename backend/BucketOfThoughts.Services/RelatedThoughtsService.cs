@@ -166,7 +166,19 @@ public class RelatedThoughtsService(BucketOfThoughtsDbContext dbContext, IUserSe
                     ParentId = rt.RelatedThoughtEntity.Bucket.ParentId,
                     SortOrder = rt.RelatedThoughtEntity.Bucket.SortOrder,
                     ShowOnDashboard = rt.RelatedThoughtEntity.Bucket.ShowOnDashboard
-                }
+                },
+                Details = rt.RelatedThoughtEntity.Details
+                    .Where(d => !d.IsDeleted)
+                    .Select(d => new ThoughtDetailDto
+                    {
+                        Id = d.Id,
+                        Description = d.Description,
+                        ThoughtId = d.ThoughtId,
+                        SortOrder = d.SortOrder,
+                        TextType = rt.RelatedThoughtEntity.TextType
+                    })
+                    .OrderBy(d => d.SortOrder)
+                    .ToList()
             }
         };
 }
