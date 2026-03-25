@@ -2,6 +2,7 @@ using Auth0Net.DependencyInjection;
 using BucketOfThoughts.Api.Middleware;
 using BucketOfThoughts.Data;
 using BucketOfThoughts.Services;
+using DotNetEnv.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,14 +14,35 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load environment variables from .env.local in development
+if (builder.Environment.IsDevelopment())
+{
+    var path = builder.Environment.ContentRootPath;
+    path += $"{Path.DirectorySeparatorChar}.env.local";
+    builder.Configuration.AddDotNetEnv(path);
+}
+
+// Validate required environment variables
+var requiredEnvVars = new[] { "AUTH0_DOMAIN", "AUTH0_AUDIENCE", "UI_APP_URL", "DB_CONN" };
+foreach (var envVar in requiredEnvVars)
+{
+    if (string.IsNullOrEmpty(builder.Configuration[envVar]))
+    {
+        throw new InvalidOperationException($"Required environment variable '{envVar}' is not set.");
+    }
+}
+
+var domain = builder.Configuration["AUTH0_DOMAIN"]!;
+var audience = builder.Configuration["AUTH0_AUDIENCE"]!;
+var uiAppUrl = builder.Configuration["UI_APP_URL"]!;
+var connectionString = builder.Configuration["DB_CONN"]!;
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
-
-var uiAppUrl = builder.Configuration["UI_APP_URL"] ?? throw new ArgumentNullException("UI_APP_URL is missing");
 
 var corsPolicyName = "UI-APP-ACCESS";
 builder.Services.AddCors(
@@ -37,11 +59,8 @@ builder.Services.AddCors(
     }
 );
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
 builder.Services.AddDbContext<BucketOfThoughtsDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -52,9 +71,6 @@ builder.Services.AddScoped<IThoughtDetailService, ThoughtDetailService>();
 builder.Services.AddScoped<IThoughtWebsiteLinkService, ThoughtWebsiteLinkService>();
 builder.Services.AddScoped<IRelatedThoughtsService, RelatedThoughtsService>();
 builder.Services.AddScoped<IUserSessionProvider, UserSessionProvider>();
-
-var domain = builder.Configuration["AUTH0_DOMAIN"] ?? throw new ArgumentNullException("AUTH0_DOMAIN is missing");
-var audience = builder.Configuration["AUTH0_AUDIENCE"] ?? throw new ArgumentNullException("AUTH0_AUDIENCE is missing");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

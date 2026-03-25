@@ -1,0 +1,82 @@
+name: Build-Push-API
+
+on:
+  push:
+    branches: [ 'main' ]
+    paths:
+      - 'backend/**'
+      - 'api.Dockerfile'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    environment: Development
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    name: Build and Deploy .NET API to Cloud Run
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: '532956049186'
+      PROJECT: 'bucket-of-thoughts-dev-491315'
+      REGION: 'us-central1'
+      SERVICE_NAME: 'bucket-of-thoughts-api'
+      REPO_URL: 'us-central1-docker.pkg.dev/bucket-of-thoughts-dev-491315/bucket-of-thoughts-api'
+      IMAGE_TAG: ${{ github.sha }}
+      GCP_WIF_PROVIDER: 'projects/532956049186/locations/global/workloadIdentityPools/github/providers/github-oidc'
+      GCP_SA_EMAIL: 'github-actions-default@bucket-of-thoughts-dev.iam.gserviceaccount.com'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate to GCP
+      id: 'auth'
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: '${{ env.GCP_WIF_PROVIDER }}'
+        service_account: '${{ env.GCP_SA_EMAIL }}'
+        token_format: 'access_token'
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Login to Artifact Registry
+      uses: docker/login-action@v3
+      with:
+        registry: us-central1-docker.pkg.dev
+        username: oauth2accesstoken
+        password: ${{ steps.auth.outputs.access_token }}
+
+    - name: Build Docker Image
+      run: |
+        docker build -f api.Dockerfile \
+          -t ${{ env.REPO_URL }}/app:${{ env.IMAGE_TAG }} \
+          -t ${{ env.REPO_URL }}/app:latest \
+          .
+
+    - name: Push Docker Image
+      run: |
+        docker push ${{ env.REPO_URL }}/app:${{ env.IMAGE_TAG }}
+        docker push ${{ env.REPO_URL }}/app:latest
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image=${{ env.REPO_URL }}/app:${{ env.IMAGE_TAG }} \
+          --region=${{ env.REGION }} \
+          --platform=managed \
+          --allow-unauthenticated \
+          --vpc-connector=bucket-thoughts-app-vpc \
+          --vpc-egress=private-ranges-only \
+          --project=${{ env.PROJECT }}
+
+    - name: Show Service URL
+      run: |
+        gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --project=${{ env.PROJECT }} \
+          --format='value(status.url)'

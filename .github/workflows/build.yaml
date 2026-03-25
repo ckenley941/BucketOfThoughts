@@ -3,21 +3,61 @@ name: Build
 on:
   push:
     branches-ignore: [ main ]
-    paths-ignore: ['infra/**']
+    paths-ignore: ['infra/**', '.github/**', '*.md']
+  pull_request:
+    branches: [ main ]
+    paths-ignore: ['infra/**', '.github/**', '*.md']
 
 jobs:
-  build:
-    name: Build Images
+  build-api:
+    name: Build API Image
     runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.modified, 'backend/') ||
+      contains(github.event.head_commit.added, 'backend/') ||
+      contains(github.event.head_commit.modified, 'api.Dockerfile') ||
+      github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Docker Build API
+      - name: Build API Docker Image
         run: |
-          docker build -f api.Dockerfile .
-         
-      - name: Docker Build
+          docker build -f api.Dockerfile -t bucket-of-thoughts-api:test .
+
+  build-web:
+    name: Build Web App
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.modified, 'frontend/') ||
+      contains(github.event.head_commit.added, 'frontend/') ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint --if-present
+
+      - name: Build React app
+        working-directory: frontend
+        run: npm run build
+
+      - name: Check build output
         run: |
-          docker build -f ui.Dockerfile .
+          ls -la frontend/dist
+          echo "✅ Build successful!"

@@ -16,6 +16,10 @@ resource "google_dns_managed_zone" "bucket_of_thoughts_dev_zone" {
   dnssec_config {
     state = "off"
   }
+
+  depends_on = [
+    google_project_service.dns
+  ]
 }
 
 resource "google_dns_record_set" "bucket_of_thoughts_auth_dev_record_set" {

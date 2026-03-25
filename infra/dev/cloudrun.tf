@@ -20,16 +20,20 @@ resource "google_secret_manager_secret_iam_policy" "policy" {
 }
 
 resource "google_vpc_access_connector" "bucket_of_thoughts_app_vpc_connection" {
-  project = google_compute_subnetwork.app_subnet.project
-  region  = google_compute_subnetwork.app_subnet.region
-  name    = "bucket-of-thoughts-app-vpc"
+  project = google_compute_subnetwork.vpc_connector_subnet.project
+  region  = google_compute_subnetwork.vpc_connector_subnet.region
+  name    = "bucket-thoughts-app-vpc"  # Max 25 chars: ^[a-z][-a-z0-9]{0,23}[a-z0-9]$
 
   min_instances = 2
   max_instances = 3
 
   subnet {
-    name = google_compute_subnetwork.app_subnet.name
+    name = google_compute_subnetwork.vpc_connector_subnet.name
   }
+
+  depends_on = [
+    google_project_service.vpcaccess
+  ]
 }
 
 resource "google_compute_router" "bucket_of_thoughts_app_router" {

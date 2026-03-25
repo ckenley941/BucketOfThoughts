@@ -2,8 +2,8 @@
 FROM node:22-alpine3.19 as build
 WORKDIR /app
 COPY ./frontend .
-RUN yarn
-RUN yarn run build
+RUN npm install
+RUN npm run build
 
 # production environment
 FROM nginx:stable-alpine

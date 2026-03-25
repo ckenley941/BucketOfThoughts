@@ -1,0 +1,78 @@
+name: Build-Push-Web
+
+on:
+  push:
+    branches: [ 'main' ]
+    paths:
+      - 'frontend/**'
+      - 'infra/generate-react-env.sh'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    environment: Development
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    name: Deploy React Web App to Google Cloud Storage
+    runs-on: ubuntu-latest
+
+    env:
+      HASH: $(git rev-parse --short "$GITHUB_SHA")
+      BRANCH: ${GITHUB_REF##*/}
+      PROJECT_ID: '532956049186'
+      PROJECT: 'bucket-of-thoughts-dev-491315'
+      STORAGE_BUCKET: 'bucket-of-thoughts-dev-491315-web'
+      GCP_WIF_PROVIDER: 'projects/532956049186/locations/global/workloadIdentityPools/github/providers/github-oidc'
+      GCP_SA_EMAIL: 'github-actions-default@bucket-of-thoughts-dev.iam.gserviceaccount.com'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate to GCP
+      id: 'auth'
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: '${{ env.GCP_WIF_PROVIDER }}'
+        service_account: '${{ env.GCP_SA_EMAIL }}'
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Create Frontend env
+      run: |
+        chmod +x ./infra/generate-react-env.sh
+        ./infra/generate-react-env.sh
+        cat ./frontend/.env
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: Build React app
+      working-directory: frontend
+      run: npm run build
+
+    - name: Upload to GCS bucket
+      run: |
+        gsutil -m rsync -r -c -d frontend/dist gs://${{ env.STORAGE_BUCKET }}
+
+    - name: Set cache control headers
+      run: |
+        # Set long cache for static assets (JS, CSS, images)
+        gsutil -m setmeta -h "Cache-Control:public, max-age=31536000, immutable" \
+          "gs://${{ env.STORAGE_BUCKET }}/assets/**"
+
+        # Set short cache for HTML files
+        gsutil -m setmeta -h "Cache-Control:public, max-age=0, must-revalidate" \
+          "gs://${{ env.STORAGE_BUCKET }}/*.html"

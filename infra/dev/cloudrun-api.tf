@@ -7,6 +7,7 @@ resource "google_cloud_run_v2_service" "bucket_of_thoughts_api" {
   lifecycle {
     ignore_changes = [
       template[0].labels,
+      template[0].containers[0].image,  # Managed by CI/CD
       client,
       client_version,
     ]
@@ -20,8 +21,10 @@ resource "google_cloud_run_v2_service" "bucket_of_thoughts_api" {
     }
 
     containers {
-      image = "us-central1-docker.pkg.dev/bucket-of-thoughts-dev/${local.container_registry_api}/app:latest"
-      name  = "app-1"   
+      # Use placeholder image if real image doesn't exist yet
+      # After first deploy, update with: us-central1-docker.pkg.dev/bucket-of-thoughts-dev-491315/${local.container_registry_api}/app:latest
+      image = "us-docker.pkg.dev/cloudrun/container/hello"
+      name  = "app-1"
       resources {
         limits = {
           "cpu"    = local.app_cpu
@@ -30,6 +33,67 @@ resource "google_cloud_run_v2_service" "bucket_of_thoughts_api" {
       }
       ports {
         container_port = 8080
+      }
+
+      # Environment variables from Google Secret Manager
+      env {
+        name = "AUTH0_DOMAIN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.auth0_domain.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "AUTH0_AUDIENCE"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.auth0_audience.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "UI_APP_URL"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.ui_app_url.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "DB_CONN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.db_connection.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ASPNETCORE_ENVIRONMENT"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.aspnetcore_environment.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ASPNETCORE_URLS"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.aspnetcore_urls.secret_id
+            version = "latest"
+          }
+        }
       }
     }
 
@@ -40,6 +104,10 @@ resource "google_cloud_run_v2_service" "bucket_of_thoughts_api" {
       }
     }
   }
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.api_secrets
+  ]
 }
 
 resource "google_cloud_run_service_iam_binding" "cloudrun_all_access_api" {
