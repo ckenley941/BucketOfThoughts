@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace BucketOfThoughts.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialPostgreSQLMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,11 +17,11 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Auth0Id = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Auth0Id = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,9 +33,9 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Description = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,12 +47,12 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    WebsiteUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    SortOrder = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    WebsiteUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Description = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,15 +64,15 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     LoginProfileId = table.Column<long>(type: "bigint", nullable: false),
                     ThoughtModuleId = table.Column<long>(type: "bigint", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Description = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     ParentId = table.Column<long>(type: "bigint", nullable: true),
-                    SortOrder = table.Column<int>(type: "int", nullable: false),
-                    ShowOnDashboard = table.Column<bool>(type: "bit", nullable: false)
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
+                    ShowOnDashboard = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -95,17 +96,17 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     LoginProfileId = table.Column<long>(type: "bigint", nullable: false),
-                    ThoughtGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ThoughtGuid = table.Column<Guid>(type: "uuid", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
                     ThoughtBucketId = table.Column<long>(type: "bigint", nullable: false),
-                    TextType = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
-                    ThoughtDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ShowOnDashboard = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    TextType = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    ThoughtDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ShowOnDashboard = table.Column<bool>(type: "boolean", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -129,10 +130,11 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ParentThoughtId = table.Column<long>(type: "bigint", nullable: false),
-                    RelatedThoughtId = table.Column<long>(type: "bigint", nullable: false)
+                    RelatedThoughtId = table.Column<long>(type: "bigint", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -156,13 +158,13 @@ namespace BucketOfThoughts.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 2147483647, nullable: false),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Description = table.Column<string>(type: "text", maxLength: 2147483647, nullable: false),
                     ThoughtId = table.Column<long>(type: "bigint", nullable: false),
-                    SortOrder = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -181,7 +183,7 @@ namespace BucketOfThoughts.Data.Migrations
                 {
                     ThoughtId = table.Column<long>(type: "bigint", nullable: false),
                     WebsiteLinkId = table.Column<long>(type: "bigint", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -199,6 +201,12 @@ namespace BucketOfThoughts.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LoginProfile_Auth0Id",
+                table: "LoginProfile",
+                column: "Auth0Id",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RelatedThoughts_ParentThoughtId",

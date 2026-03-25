@@ -66,7 +66,7 @@ This repository uses GitHub Actions to automatically build and deploy the applic
 **What it does:**
 1. ✅ Authenticates to GCP using Workload Identity Federation
 2. ✅ Generates `.env` file from Google Secret Manager
-3. ✅ Installs dependencies with npm
+3. ✅ Installs dependencies with pnpm
 4. ✅ Builds Vite React app
 5. ✅ Syncs build output to Google Cloud Storage bucket
 6. ✅ Sets optimal cache headers:
@@ -130,8 +130,8 @@ docker build -f api.Dockerfile -t bucket-of-thoughts-api:test .
 ### Frontend
 ```bash
 cd frontend
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 
 ## Deployment Flow
@@ -182,6 +182,6 @@ The GitHub Actions service account needs:
 ## Cost Optimization
 
 - ✅ Workflows only run when relevant files change (path filters)
-- ✅ Node.js dependencies are cached between runs
+- ✅ pnpm dependencies are cached between runs
 - ✅ Cloud Run scales to zero when not in use
 - ✅ Static assets served from Cloud Storage (cheaper than Cloud Run)

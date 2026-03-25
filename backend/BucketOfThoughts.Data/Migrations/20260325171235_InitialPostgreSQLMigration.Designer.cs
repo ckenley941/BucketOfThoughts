@@ -3,27 +3,27 @@ using System;
 using BucketOfThoughts.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace BucketOfThoughts.Data.Migrations
 {
     [DbContext(typeof(BucketOfThoughtsDbContext))]
-    [Migration("20260217234630_FixCascadeDeleteConstraints")]
-    partial class FixCascadeDeleteConstraints
+    [Migration("20260325171235_InitialPostgreSQLMigration")]
+    partial class InitialPostgreSQLMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "10.0.4")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("BucketOfThoughts.Data.Entities.LoginProfile", b =>
                 {
@@ -32,24 +32,24 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Auth0Id")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTimeOffset?>("ModifiedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(3);
 
                     b.HasKey("Id");
@@ -67,10 +67,10 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<long>("ParentThoughtId")
@@ -78,6 +78,9 @@ namespace BucketOfThoughts.Data.Migrations
 
                     b.Property<long>("RelatedThoughtId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -95,43 +98,43 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<long>("LoginProfileId")
                         .HasColumnType("bigint")
                         .HasColumnOrder(4);
 
                     b.Property<DateTimeOffset?>("ModifiedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(3);
 
                     b.Property<bool>("ShowOnDashboard")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("TextType")
                         .IsRequired()
                         .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
+                        .HasColumnType("character varying(25)");
 
                     b.Property<long>("ThoughtBucketId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("ThoughtDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ThoughtGuid")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -149,33 +152,33 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long>("LoginProfileId")
                         .HasColumnType("bigint")
                         .HasColumnOrder(4);
 
                     b.Property<DateTimeOffset?>("ModifiedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(3);
 
                     b.Property<long?>("ParentId")
                         .HasColumnType("bigint");
 
                     b.Property<bool>("ShowOnDashboard")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long>("ThoughtModuleId")
                         .HasColumnType("bigint");
@@ -196,26 +199,26 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2147483647)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("ModifiedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(3);
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long>("ThoughtId")
                         .HasColumnType("bigint");
@@ -234,16 +237,16 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -259,7 +262,7 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.HasKey("ThoughtId", "WebsiteLinkId");
 
@@ -275,27 +278,27 @@ namespace BucketOfThoughts.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(2);
 
                     b.Property<string>("Description")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset?>("ModifiedDateTime")
-                        .HasColumnType("datetimeoffset")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnOrder(3);
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("WebsiteUrl")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)");
 
                     b.HasKey("Id");
 
