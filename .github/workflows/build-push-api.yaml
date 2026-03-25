@@ -69,9 +69,6 @@ jobs:
           --image=${{ env.REPO_URL }}/app:${{ env.IMAGE_TAG }} \
           --region=${{ env.REGION }} \
           --platform=managed \
-          --allow-unauthenticated \
-          --vpc-connector=bucket-thoughts-app-vpc \
-          --vpc-egress=private-ranges-only \
           --project=${{ env.PROJECT }}
 
     - name: Show Service URL
