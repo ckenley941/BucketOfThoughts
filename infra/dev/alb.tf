@@ -35,3 +35,66 @@ resource "google_compute_backend_service" "bucket_of_thoughts_api_backend_servic
     group = google_compute_region_network_endpoint_group.bucket_of_thoughts_api_neg.id
   }
 }
+
+# URL Map - routes /api/* to API backend, everything else to web static bucket
+resource "google_compute_url_map" "bucket_of_thoughts_alb" {
+  name            = "bucket-of-thoughts-alb"
+  default_service = google_compute_backend_bucket.web_backend.id
+
+  host_rule {
+    hosts        = ["*"]
+    path_matcher = "allpaths"
+  }
+
+  path_matcher {
+    name            = "allpaths"
+    default_service = google_compute_backend_bucket.web_backend.id
+
+    path_rule {
+      paths   = ["/api", "/api/*"]
+      service = google_compute_backend_service.bucket_of_thoughts_api_backend_service.id
+    }
+  }
+}
+
+# HTTPS Proxy
+resource "google_compute_target_https_proxy" "bucket_of_thoughts_https_proxy" {
+  name             = "bucket-of-thoughts-https-proxy"
+  url_map          = google_compute_url_map.bucket_of_thoughts_alb.id
+  ssl_certificates = [google_compute_managed_ssl_certificate.bucket_of_thoughts_alb_cert.id]
+}
+
+# Global Forwarding Rule
+resource "google_compute_global_forwarding_rule" "bucket_of_thoughts_https" {
+  name                  = "bucket-of-thoughts-https"
+  ip_protocol           = "TCP"
+  load_balancing_scheme = "EXTERNAL"
+  port_range            = "443"
+  target                = google_compute_target_https_proxy.bucket_of_thoughts_https_proxy.id
+  ip_address            = google_compute_global_address.bucket_of_thoughts_alb_address.id
+}
+
+# HTTP to HTTPS redirect
+resource "google_compute_url_map" "bucket_of_thoughts_http_redirect" {
+  name = "bucket-of-thoughts-http-redirect"
+
+  default_url_redirect {
+    https_redirect         = true
+    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+    strip_query            = false
+  }
+}
+
+resource "google_compute_target_http_proxy" "bucket_of_thoughts_http_proxy" {
+  name    = "bucket-of-thoughts-http-proxy"
+  url_map = google_compute_url_map.bucket_of_thoughts_http_redirect.id
+}
+
+resource "google_compute_global_forwarding_rule" "bucket_of_thoughts_http" {
+  name                  = "bucket-of-thoughts-http"
+  ip_protocol           = "TCP"
+  load_balancing_scheme = "EXTERNAL"
+  port_range            = "80"
+  target                = google_compute_target_http_proxy.bucket_of_thoughts_http_proxy.id
+  ip_address            = google_compute_global_address.bucket_of_thoughts_alb_address.id
+}

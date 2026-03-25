@@ -22,11 +22,30 @@
 
 ## Deploy a New Version
 
+### API (Cloud Run)
+
 The image pull is based off the "latest" tag.
 
-* Select app from [console](https://console.cloud.google.com/run/detail/us-central1/bucket-of-thoughts-server/metrics?authuser=1&project=bucket-of-thoughts-dev)
+* Select app from [console](https://console.cloud.google.com/run/detail/us-central1/bucket-of-thoughts-api/metrics?authuser=1&project=bucket-of-thoughts-dev)
 * Click edit and deploy new version
 * Scroll to bottom (no change necessary) and click "Deploy"
+
+### UI (Static Hosting on Google Cloud Storage)
+
+The UI is hosted as a static website on Google Cloud Storage. To deploy a new version:
+
+1. Build the React app:
+   ```bash
+   cd ../../app  # or wherever your React app is located
+   npm run build
+   ```
+
+2. Upload the build output to the storage bucket:
+   ```bash
+   gsutil -m rsync -r -d build gs://bucket-of-thoughts-dev-web
+   ```
+
+Note: The load balancer routes all traffic to the static website except for `/api/*` paths, which are routed to the Cloud Run API service.
 
 ## Tearing down environment
 

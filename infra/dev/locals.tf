@@ -1,14 +1,11 @@
 locals {
-  project                    = "bucket-of-thoughts-dev"
-  env                        = "dev"
-  region                     = "us-central1"
-  container_registry_api     = "bucket-of-thoughts-api"
-  container_registry_ui      = "bucket-of-thoughts-ui"
+  project                = "bucket-of-thoughts-dev"
+  env                    = "dev"
+  region                 = "us-central1"
+  container_registry_api = "bucket-of-thoughts-api"
 
   app_cpu            = "1000m"
   app_mem            = "512Mi"
-  ui_cpu             = "1000m"
-  ui_mem             = "512Mi"
   con_cpu            = "1000m"
   con_mem            = "512Mi"
   max_instance_count = 2
@@ -20,7 +17,7 @@ locals {
   db_authorized_ips = [
     {
       name = "Colin-Home"
-      ip   = "64.110.14.50"
+      ip   = "73.153.99.230"
     }
   ]
 
