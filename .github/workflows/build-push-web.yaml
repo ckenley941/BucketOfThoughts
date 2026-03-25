@@ -6,6 +6,8 @@ on:
     paths:
       - 'frontend/**'
       - 'infra/generate-react-env.sh'
+      - 'infra/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -81,3 +83,12 @@ jobs:
         # Set short cache for HTML files
         gsutil -m setmeta -h "Cache-Control:public, max-age=0, must-revalidate" \
           "gs://${{ env.STORAGE_BUCKET }}/*.html"
+
+    - name: Show web app URL
+      run: |
+        echo "✅ Frontend deployed successfully"
+        echo "Use this URL:"
+        echo "https://${{ env.STORAGE_BUCKET }}.storage.googleapis.com/"
+        echo ""
+        echo "Avoid this object-path URL for SPA routing:"
+        echo "https://storage.googleapis.com/${{ env.STORAGE_BUCKET }}/index.html"

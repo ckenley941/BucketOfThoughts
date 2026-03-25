@@ -81,6 +81,8 @@ This repository uses GitHub Actions to automatically build and deploy the applic
 **Deployment Target:**
 - Bucket: `bucket-of-thoughts-dev-491315-web`
 - Build output: `frontend/dist` (Vite output)
+- Access URL: `https://bucket-of-thoughts-dev-491315-web.storage.googleapis.com/`
+- Avoid object-path URL for SPA routing: `https://storage.googleapis.com/bucket-of-thoughts-dev-491315-web/index.html`
 
 ---
 

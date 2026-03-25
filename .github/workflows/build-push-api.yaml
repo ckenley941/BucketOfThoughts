@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/**'
       - 'api.Dockerfile'
+      - 'infra/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
