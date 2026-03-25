@@ -97,8 +97,8 @@ This workflow is kept for reference but will not trigger automatically.
 
 All workflows use **Workload Identity Federation** for secure, keyless authentication to Google Cloud:
 
-- **Workload Identity Provider:** `projects/532956049186/locations/global/workloadIdentityPools/github/providers/github-oidc`
-- **Service Account:** `github-actions-default@bucket-of-thoughts-dev.iam.gserviceaccount.com`
+- **Workload Identity Provider:** `projects/541356552332/locations/global/workloadIdentityPools/github/providers/github-oidc`
+- **Service Account:** `github-actions-default@bucket-of-thoughts-dev-491315.iam.gserviceaccount.com`
 
 This eliminates the need for storing GCP service account keys in GitHub.
 
