@@ -163,7 +163,11 @@ public class RelatedThoughtsService(BucketOfThoughtsDbContext dbContext, IUserSe
                     Id = rt.RelatedThoughtEntity.Bucket.Id,
                     Description = rt.RelatedThoughtEntity.Bucket.Description,
                     ThoughtModuleId = rt.RelatedThoughtEntity.Bucket.ThoughtModuleId,
+                    ModuleDescription = rt.RelatedThoughtEntity.Bucket.ThoughtModule.Description,
                     ParentId = rt.RelatedThoughtEntity.Bucket.ParentId,
+                    ParentDescription = rt.RelatedThoughtEntity.Bucket.Parent != null
+                        ? rt.RelatedThoughtEntity.Bucket.Parent.Description
+                        : null,
                     SortOrder = rt.RelatedThoughtEntity.Bucket.SortOrder,
                     ShowOnDashboard = rt.RelatedThoughtEntity.Bucket.ShowOnDashboard
                 },

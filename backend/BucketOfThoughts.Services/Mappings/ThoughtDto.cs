@@ -1,4 +1,5 @@
-﻿using BucketOfThoughts.Data.Entities;
+using BucketOfThoughts.Data;
+using BucketOfThoughts.Data.Entities;
 
 namespace BucketOfThoughts.Services.Mappings;
 
@@ -32,7 +33,7 @@ public static class ThoughtMapper
                 TextType = textType,
                 ShowOnDashboard = thoughtDto.ShowOnDashboard,
                 LoginProfileId = thoughtDto.LoginProfileId,
-                ThoughtDate = thoughtDto.ThoughtDate ?? DateTime.UtcNow,
+                ThoughtDate = (thoughtDto.ThoughtDate ?? DateTime.UtcNow).ToNpgsqlUtc(),
                 ThoughtBucketId = thoughtDto.Bucket.Id
             };
         }
@@ -49,7 +50,9 @@ public static class ThoughtMapper
             dbRow.Id = thoughtDto.Id;
             dbRow.Description = thoughtDto.Description;
             dbRow.TextType = textType;
-            dbRow.ThoughtDate = thoughtDto.ThoughtDate ?? dbRow.ThoughtDate;
+            dbRow.ThoughtDate = thoughtDto.ThoughtDate is { } dtoDate
+                ? dtoDate.ToNpgsqlUtc()
+                : dbRow.ThoughtDate;
             dbRow.ShowOnDashboard  = thoughtDto.ShowOnDashboard;
             dbRow.ThoughtBucketId = thoughtDto.Bucket.Id;
             //TODO figure out update for details and website links - probably do separtely?

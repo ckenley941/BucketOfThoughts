@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -67,6 +66,7 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IThoughtService, ThoughtService>();
 builder.Services.AddScoped<IThoughtBucketService, ThoughtBucketService>();
+builder.Services.AddScoped<IThoughtModuleService, ThoughtModuleService>();
 builder.Services.AddScoped<IThoughtDetailService, ThoughtDetailService>();
 builder.Services.AddScoped<IThoughtWebsiteLinkService, ThoughtWebsiteLinkService>();
 builder.Services.AddScoped<IRelatedThoughtsService, RelatedThoughtsService>();
@@ -144,14 +144,13 @@ if (app.Environment.IsDevelopment())
             if (pendingMigrations.Any())
             {
                 logger.LogInformation($"Applying {pendingMigrations.Count} pending migration(s): {string.Join(", ", pendingMigrations)}");
+                context.Database.Migrate();
+                logger.LogInformation("Database migrations applied successfully.");
             }
             else
             {
                 logger.LogInformation("No pending migrations.");
             }
-
-            context.Database.Migrate();
-            logger.LogInformation("Database migrations applied successfully.");
         }
         catch (Exception ex)
         {

@@ -1,4 +1,4 @@
-﻿using BucketOfThoughts.Data.Entities;
+using BucketOfThoughts.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BucketOfThoughts.Data;
@@ -61,6 +61,11 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
             // Configure TextType string with max length
             entity.Property(e => e.TextType)
                 .HasMaxLength(25);
+
+            entity.Property(e => e.ThoughtDate)
+                .HasConversion(
+                    v => v.ToNpgsqlUtc(),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
         });
 
         // Configure ThoughtBucket relationships
@@ -76,6 +81,12 @@ public class BucketOfThoughtsDbContext : BaseDbContext<BucketOfThoughtsDbContext
                 .HasOne(tb => tb.ThoughtModule)
                 .WithMany(tm => tm.ThoughtBuckets)
                 .HasForeignKey(tb => tb.ThoughtModuleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(tb => tb.Parent)
+                .WithMany()
+                .HasForeignKey(tb => tb.ParentId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

@@ -145,13 +145,13 @@ const ThoughtBucketsPage = () => {
                   {bucket.description || `Bucket #${bucket.id}`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Module ID: {bucket.thoughtModuleId}
+                  Module: {bucket.moduleDescription ?? '—'}
                 </Typography>
-                {bucket.parentId && (
+                {bucket.parentDescription ? (
                   <Typography variant="body2" color="text.secondary">
-                    Parent ID: {bucket.parentId}
+                    Parent: {bucket.parentDescription}
                   </Typography>
-                )}
+                ) : null}
                 <Typography variant="body2" color="text.secondary">
                   Sort Order: {bucket.sortOrder}
                 </Typography>

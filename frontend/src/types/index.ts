@@ -21,11 +21,20 @@ export interface RecentThought extends Thought {
   status: RecentThoughtStatus;
 }
 
+export interface ThoughtModule {
+  id: number;
+  description: string;
+}
+
 export interface ThoughtBucket {
   id: number;
   thoughtModuleId: number;
+  /** Set on read from API projection (ThoughtModule.Description) */
+  moduleDescription?: string;
   description: string;
   parentId?: number;
+  /** Set on read from API projection (parent ThoughtBucket.Description) */
+  parentDescription?: string | null;
   sortOrder: number;
   showOnDashboard: boolean;
 }

@@ -16,7 +16,7 @@ public interface IThoughtBucketService
     Task<bool> DeleteThoughtBucket(long id);
 }
 
-public class ThoughtBucketService(BucketOfThoughtsDbContext dbContext) : IThoughtBucketService
+public class ThoughtBucketService(BucketOfThoughtsDbContext dbContext, IUserSessionProvider userSessionProvider) : IThoughtBucketService
 {
     public async Task<ApplicationServiceResult<ThoughtBucketDto>> GetThoughtBuckets()
     {
@@ -38,6 +38,7 @@ public class ThoughtBucketService(BucketOfThoughtsDbContext dbContext) : IThough
     public async Task<ApplicationServiceResult<ThoughtBucketDto>> AddThoughtBucket(ThoughtBucketDto thoughtBucketDto)
     {
         var entity = thoughtBucketDto.MapInsert();
+        entity.LoginProfileId = userSessionProvider.LoginProfileId;
         dbContext.ThoughtBuckets.Add(entity);
         await dbContext.SaveChangesAsync();
         thoughtBucketDto.Id = entity.Id;
@@ -65,8 +66,10 @@ public class ThoughtBucketService(BucketOfThoughtsDbContext dbContext) : IThough
         {
             Id = tb.Id,
             ThoughtModuleId = tb.ThoughtModuleId,
+            ModuleDescription = tb.ThoughtModule.Description,
             Description = tb.Description,
             ParentId = tb.ParentId,
+            ParentDescription = tb.Parent != null ? tb.Parent.Description : null,
             SortOrder = tb.SortOrder,
             ShowOnDashboard = tb.ShowOnDashboard
         };

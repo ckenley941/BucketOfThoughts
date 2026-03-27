@@ -7,19 +7,24 @@ import {
   CircularProgress,
   FormControlLabel,
   Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import { refreshThoughtBuckets } from '../hooks';
-import type { ThoughtBucket } from '../types';
+import type { ThoughtBucket, ThoughtModule } from '../types';
 
 const ThoughtBucketForm = () => {
   const apiClient = useApiClient();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
+  const currentBucketId = isEditMode && id ? parseInt(id, 10) : undefined;
   const { isAuthenticated } = useAuth0();
 
   const [formData, setFormData] = useState<Partial<ThoughtBucket>>({
@@ -29,9 +34,52 @@ const ThoughtBucketForm = () => {
     sortOrder: 0,
     showOnDashboard: true,
   });
+  const [thoughtModules, setThoughtModules] = useState<ThoughtModule[]>([]);
+  const [thoughtBuckets, setThoughtBuckets] = useState<ThoughtBucket[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(isEditMode);
+  const [optionsLoading, setOptionsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadOptions = async () => {
+      if (!isAuthenticated) {
+        setOptionsLoading(false);
+        return;
+      }
+
+      setOptionsLoading(true);
+      setError(null);
+      try {
+        const [modulesRes, bucketsRes] = await Promise.all([
+          apiClient.get<ThoughtModule[]>('api/thoughtmodules'),
+          apiClient.get<ThoughtBucket[]>('api/thoughtbuckets'),
+        ]);
+        if (!cancelled) {
+          setThoughtModules(modulesRes.data);
+          setThoughtBuckets(bucketsRes.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to load thought modules or buckets',
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setOptionsLoading(false);
+        }
+      }
+    };
+
+    loadOptions();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const fetchThoughtBucket = async () => {
@@ -55,6 +103,11 @@ const ThoughtBucketForm = () => {
     fetchThoughtBucket();
   }, [id, isEditMode, isAuthenticated]);
 
+  const parentBucketOptions = thoughtBuckets
+    .filter((b) => b.id !== currentBucketId)
+    .slice()
+    .sort((a, b) => a.description.localeCompare(b.description, undefined, { sensitivity: 'base' }));
+
   const handleSubmit = async () => {
     setError(null);
     if (!isAuthenticated) {
@@ -68,7 +121,7 @@ const ThoughtBucketForm = () => {
     }
 
     if (!formData.thoughtModuleId || formData.thoughtModuleId <= 0) {
-      setError('Thought Module ID must be greater than 0.');
+      setError('Please select a thought module.');
       return;
     }
 
@@ -89,7 +142,6 @@ const ThoughtBucketForm = () => {
         await apiClient.post<ThoughtBucket>('api/thoughtbuckets', payload);
       }
 
-      // Refresh buckets in navbar and other components
       refreshThoughtBuckets();
 
       navigate('/thought-buckets');
@@ -104,7 +156,9 @@ const ThoughtBucketForm = () => {
     navigate('/thought-buckets');
   };
 
-  if (fetching) {
+  const pageLoading = optionsLoading || (isEditMode && fetching);
+
+  if (pageLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
         <CircularProgress />
@@ -132,31 +186,58 @@ const ThoughtBucketForm = () => {
           required
           inputProps={{ maxLength: 256 }}
         />
-        <TextField
-          fullWidth
-          label="Thought Module ID"
-          type="number"
-          value={formData.thoughtModuleId || ''}
-          onChange={(e) => setFormData({ ...formData, thoughtModuleId: parseInt(e.target.value, 10) || 0 })}
-          margin="normal"
-          required
-          inputProps={{ min: 1 }}
-        />
-        <TextField
-          fullWidth
-          label="Parent ID (Optional)"
-          type="number"
-          value={formData.parentId || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            setFormData({
-              ...formData,
-              parentId: value ? parseInt(value, 10) : undefined,
-            });
-          }}
-          margin="normal"
-          inputProps={{ min: 1 }}
-        />
+        <FormControl fullWidth margin="normal" required>
+          <InputLabel id="thought-module-label" shrink>
+            Thought module
+          </InputLabel>
+          <Select
+            labelId="thought-module-label"
+            label="Thought module"
+            value={formData.thoughtModuleId && formData.thoughtModuleId > 0 ? formData.thoughtModuleId : ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                thoughtModuleId: Number(e.target.value),
+              })
+            }
+          >
+            <MenuItem value="">
+              <em>Select a module</em>
+            </MenuItem>
+            {thoughtModules.map((m) => (
+              <MenuItem key={m.id} value={m.id}>
+                {m.description}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="parent-bucket-label" shrink>
+            Parent bucket
+          </InputLabel>
+          <Select
+            labelId="parent-bucket-label"
+            label="Parent bucket"
+            displayEmpty
+            value={formData.parentId ?? ''}
+            onChange={(e) => {
+              const v = e.target.value;
+              setFormData({
+                ...formData,
+                parentId: v === '' ? undefined : Number(v),
+              });
+            }}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {parentBucketOptions.map((b) => (
+              <MenuItem key={b.id} value={b.id}>
+                {b.description}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           fullWidth
           label="Sort Order"
@@ -198,4 +279,3 @@ const ThoughtBucketForm = () => {
 };
 
 export default ThoughtBucketForm;
-

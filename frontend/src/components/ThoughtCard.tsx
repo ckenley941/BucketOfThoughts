@@ -21,6 +21,10 @@ interface ThoughtCardProps {
   handleDelete?: () => void;
 }
 
+/** Table thoughts are stored as `Json` (UI label: Table). */
+const isTableTextType = (textType: string | undefined) =>
+  textType === 'Json';
+
 const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: ThoughtCardProps) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
@@ -120,36 +124,42 @@ const ThoughtCard = ({ thought, onClick, allowDelete = false, handleDelete }: Th
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {thought.details.map((detail) => {
-                  const fullDescription = detail.description || '(No description)';
-                  const truncatedDescription = truncateDescription(detail.description);
-                  const isTruncated = fullDescription.length > 100;
+              {isTableTextType(thought.textType) ? (
+                <Typography variant="body2" color="text.secondary">
+                  Open to view table
+                </Typography>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {thought.details.map((detail) => {
+                    const fullDescription = detail.description || '(No description)';
+                    const truncatedDescription = truncateDescription(detail.description);
+                    const isTruncated = fullDescription.length > 100;
 
-                  return (
-                    <Box key={detail.id} sx={{ pl: 2, borderLeft: 2, borderColor: 'divider' }}>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 0.5, fontWeight: 'medium' }}
-                      >
-                        #{detail.sortOrder}
-                      </Typography>
-                      {isTruncated ? (
-                        <Tooltip title={fullDescription} arrow>
-                          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', cursor: 'help' }}>
-                            {truncatedDescription}
-                          </Typography>
-                        </Tooltip>
-                      ) : (
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {fullDescription}
+                    return (
+                      <Box key={detail.id} sx={{ pl: 2, borderLeft: 2, borderColor: 'divider' }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 0.5, fontWeight: 'medium' }}
+                        >
+                          #{detail.sortOrder}
                         </Typography>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Box>
+                        {isTruncated ? (
+                          <Tooltip title={fullDescription} arrow>
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', cursor: 'help' }}>
+                              {truncatedDescription}
+                            </Typography>
+                          </Tooltip>
+                        ) : (
+                          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {fullDescription}
+                          </Typography>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              )}
             </AccordionDetails>
           </Accordion>
         )}

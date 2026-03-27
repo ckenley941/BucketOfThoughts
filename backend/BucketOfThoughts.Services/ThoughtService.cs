@@ -1,4 +1,4 @@
-﻿using BucketOfThoughts.Data;
+using BucketOfThoughts.Data;
 using BucketOfThoughts.Data.Entities;
 using BucketOfThoughts.Services.Constants;
 using BucketOfThoughts.Services.Mappings;
@@ -238,7 +238,9 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
             Id = t.Bucket.Id,
             Description = t.Bucket.Description,
             ThoughtModuleId = t.Bucket.ThoughtModuleId,
+            ModuleDescription = t.Bucket.ThoughtModule.Description,
             ParentId = t.Bucket.ParentId,
+            ParentDescription = t.Bucket.Parent != null ? t.Bucket.Parent.Description : null,
             SortOrder = t.Bucket.SortOrder,
             ShowOnDashboard = t.Bucket.ShowOnDashboard
         },

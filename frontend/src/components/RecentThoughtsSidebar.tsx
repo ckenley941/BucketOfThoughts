@@ -3,7 +3,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   Box,
   Typography,
   CircularProgress,
@@ -17,13 +16,93 @@ import {
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import type { SxProps, Theme } from '@mui/material/styles';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiClient } from '../services/api';
 import type { RecentThought } from '../types';
 
 const drawerWidth = 240;
 const collapsedWidth = 64;
+
+/** Full description in a tooltip only when the one-line label is truncated (ellipsis). */
+function TruncatedOneLineWithTooltip({
+  text,
+  variant = 'body2',
+  sx,
+}: {
+  text: string;
+  variant?: 'body2' | 'caption';
+  sx?: SxProps<Theme>;
+}) {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [truncated, setTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      // Flex items default to min-width: auto; without minWidth:0 on ancestors scrollWidth === clientWidth.
+      setTruncated(el.scrollWidth > el.clientWidth + 0.5);
+    };
+
+    const run = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(measure);
+      });
+    };
+
+    run();
+    const ro = new ResizeObserver(run);
+    ro.observe(el);
+    window.addEventListener('resize', run);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', run);
+    };
+  }, [text]);
+
+  const typography = (
+    <Typography
+      ref={textRef}
+      variant={variant}
+      component="span"
+      noWrap
+      sx={{
+        display: 'block',
+        width: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        ...sx,
+      }}
+    >
+      {text}
+    </Typography>
+  );
+
+  return (
+    <Tooltip
+      title={text}
+      placement="left-start"
+      enterDelay={400}
+      disableHoverListener={!truncated}
+      slotProps={{
+        tooltip: {
+          sx: {
+            maxWidth: 420,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          },
+        },
+      }}
+    >
+      {typography}
+    </Tooltip>
+  );
+}
 
 const getStatusLabel = (status: string | number | undefined): string => {
   if (status === undefined || status === null || status === '') return '';
@@ -155,86 +234,111 @@ const RecentThoughtsSidebar = ({ mobileOpen, onMobileClose }: RecentThoughtsSide
             </Typography>
           )
         ) : (
-          <List>
-            {recentThoughts.map((thought, index) => (
-              <Box key={thought.id}>
-                {index > 0 && <Divider />}
-                <ListItem disablePadding>
-                  <ListItemButton
-                    selected={location.pathname === `/thought/${thought.id}`}
-                    onClick={() => {
-                      navigate(`/thought/${thought.id}`);
-                      if (isMobile && onMobileClose) {
-                        onMobileClose();
-                      }
-                    }}
-                    sx={{
-                      flexDirection: collapsed && !isMobile ? 'column' : 'column',
-                      alignItems: collapsed && !isMobile ? 'center' : 'flex-start',
-                      justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-                      py: collapsed && !isMobile ? 1.5 : 1.5,
-                      px: collapsed && !isMobile ? 0.5 : 1,
-                      minHeight: collapsed && !isMobile ? 56 : 'auto',
-                      '& .MuiListItemText-primary': {
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+          <List sx={{ width: '100%', minWidth: 0, py: 0 }}>
+            {recentThoughts.map((thought, index) => {
+              const description = thought.description ?? '';
+              const collapsedPreview = description
+                ? description.substring(0, 10) + (description.length > 10 ? '...' : '')
+                : `#${thought.id}`;
+              const collapsedNeedsTooltip = Boolean(description && description.length > 10);
+
+              const collapsedCaption = (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: '0.65rem',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: '100%',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {collapsedPreview}
+                </Typography>
+              );
+
+              return (
+                <Box key={thought.id}>
+                  {index > 0 && <Divider />}
+                  <ListItem disablePadding sx={{ minWidth: 0, width: '100%' }}>
+                    <ListItemButton
+                      selected={location.pathname === `/thought/${thought.id}`}
+                      onClick={() => {
+                        navigate(`/thought/${thought.id}`);
+                        if (isMobile && onMobileClose) {
+                          onMobileClose();
+                        }
+                      }}
+                      sx={{
+                        flexDirection: collapsed && !isMobile ? 'column' : 'column',
+                        alignItems: collapsed && !isMobile ? 'center' : 'flex-start',
+                        justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+                        py: collapsed && !isMobile ? 1.5 : 1.5,
+                        px: collapsed && !isMobile ? 0.5 : 1,
+                        minHeight: collapsed && !isMobile ? 56 : 'auto',
+                        minWidth: 0,
                         width: '100%',
-                        mt: collapsed && !isMobile ? 0 : 0.5,
-                        textAlign: collapsed && !isMobile ? 'center' : 'left',
-                      },
-                    }}
-                    title={collapsed && !isMobile ? (thought.description || `Thought #${thought.id}`) : undefined}
-                  >
-                    {collapsed && !isMobile ? (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontSize: '0.65rem',
-                          textAlign: 'center',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          width: '100%',
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {thought.description
-                          ? thought.description.substring(0, 10) + (thought.description.length > 10 ? '...' : '')
-                          : `#${thought.id}`}
-                      </Typography>
-                    ) : (
-                      <>
-                        <Box sx={{ display: 'flex', gap: 0.5, mb: 0.5, flexWrap: 'wrap' }}>
-                          {thought.bucket && (
-                            <Chip
-                              label={thought.bucket.description}
-                              color="primary"
-                              variant="outlined"
-                              size="small"
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {collapsed && !isMobile ? (
+                        collapsedNeedsTooltip ? (
+                          <Tooltip
+                            title={description}
+                            placement="right"
+                            enterDelay={400}
+                            slotProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: 420,
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                },
+                              },
+                            }}
+                          >
+                            <span style={{ display: 'block', width: '100%', textAlign: 'center' }}>{collapsedCaption}</span>
+                          </Tooltip>
+                        ) : (
+                          collapsedCaption
+                        )
+                      ) : (
+                        <>
+                          <Box sx={{ display: 'flex', gap: 0.5, mb: 0.5, flexWrap: 'wrap', maxWidth: '100%' }}>
+                            {thought.bucket && (
+                              <Chip
+                                label={thought.bucket.description}
+                                color="primary"
+                                variant="outlined"
+                                size="small"
+                              />
+                            )}
+                            {(thought.status !== undefined && thought.status !== null && thought.status !== '') && (
+                              <Chip
+                                label={getStatusLabel(thought.status)}
+                                color={getStatusColor(thought.status)}
+                                size="small"
+                                variant="filled"
+                              />
+                            )}
+                          </Box>
+                          <Box sx={{ width: '100%', minWidth: 0, mt: 0.5 }}>
+                            <TruncatedOneLineWithTooltip
+                              text={thought.description || `Thought #${thought.id}`}
+                              sx={{
+                                textAlign: 'left',
+                              }}
                             />
-                          )}
-                          {(thought.status !== undefined && thought.status !== null && thought.status !== '') && (
-                            <Chip
-                              label={getStatusLabel(thought.status)}
-                              color={getStatusColor(thought.status)}
-                              size="small"
-                              variant="filled"
-                            />
-                          )}
-                        </Box>
-                        <ListItemText
-                          primary={thought.description || `Thought #${thought.id}`}
-                          primaryTypographyProps={{
-                            variant: 'body2',
-                          }}
-                        />
-                      </>
-                    )}
-                  </ListItemButton>
-                </ListItem>
-              </Box>
-            ))}
+                          </Box>
+                        </>
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                </Box>
+              );
+            })}
           </List>
         )}
       </Box>

@@ -5,8 +5,12 @@ namespace BucketOfThoughts.Services.Mappings;
 public partial class ThoughtBucketDto : BaseDto
 {
     public long ThoughtModuleId { get; set; }
+    /// <summary>From ThoughtModule; populated on read queries via projection.</summary>
+    public string ModuleDescription { get; set; } = string.Empty;
     public string Description { get; set; } = null!;
     public long? ParentId { get; set; }
+    /// <summary>Parent bucket description when <see cref="ParentId"/> is set; populated on read queries via projection.</summary>
+    public string? ParentDescription { get; set; }
     public int SortOrder { get; set; }
     public bool ShowOnDashboard { get; set; } = true;
 }
