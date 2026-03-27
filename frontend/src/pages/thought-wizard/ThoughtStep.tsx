@@ -8,9 +8,13 @@ import {
   FormControlLabel,
   Switch,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { useEffect } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import { useEffect, useState } from 'react';
 import type { ThoughtBucket } from '../../types';
+import AddThoughtBucketModal from '../../components/AddThoughtBucketModal';
 
 export interface ThoughtStepData {
   description: string;
@@ -26,6 +30,8 @@ interface ThoughtStepProps {
   loadingBuckets: boolean;
   loadingThought: boolean;
   onDataChange: (data: Partial<ThoughtStepData>) => void;
+  /** After a new bucket is created from the modal, parent refetches and can update selection. */
+  onThoughtBucketCreated?: (bucket: ThoughtBucket) => void;
 }
 
 const ThoughtStep = ({
@@ -34,7 +40,10 @@ const ThoughtStep = ({
   loadingBuckets,
   loadingThought,
   onDataChange,
+  onThoughtBucketCreated,
 }: ThoughtStepProps) => {
+  const [addBucketOpen, setAddBucketOpen] = useState(false);
+
   // Auto-select first bucket when buckets finish loading and none is selected
   useEffect(() => {
     if (
@@ -45,7 +54,10 @@ const ThoughtStep = ({
       // Ensure we have a valid bucket before selecting
       const firstBucket = thoughtBuckets[0];
       if (firstBucket && firstBucket.id) {
-        onDataChange({ selectedBucket: firstBucket });
+        onDataChange({
+          selectedBucket: firstBucket,
+          showOnDashboard: firstBucket.showOnDashboard ?? true,
+        });
       }
     }
   }, [loadingBuckets, thoughtBuckets.length, data.selectedBucket, onDataChange]);
@@ -75,34 +87,59 @@ const ThoughtStep = ({
         rows={4}
         disabled={loadingThought}
       />
-      <FormControl fullWidth margin="normal" required>
-        <InputLabel>Thought Bucket</InputLabel>
-        <Select
-          value={data.selectedBucket?.id || ''}
-          label="Thought Bucket"
-          onChange={(e) => {
-            const bucketId = e.target.value as number;
-            const bucket = thoughtBuckets.find((b) => b.id === bucketId);
-            onDataChange({ selectedBucket: bucket || null });
-          }}
-          disabled={loadingBuckets || loadingThought}
-          displayEmpty
-        >
-          {loadingBuckets ? (
-            <MenuItem disabled>
-              <CircularProgress size={20} />
-            </MenuItem>
-          ) : thoughtBuckets.length === 0 ? (
-            <MenuItem disabled>No thought buckets available</MenuItem>
-          ) : (
-            thoughtBuckets.map((bucket) => (
-              <MenuItem key={bucket.id} value={bucket.id}>
-                {bucket.description || `Bucket #${bucket.id}`}
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, width: '100%' }}>
+        <FormControl fullWidth margin="normal" required sx={{ flex: 1, mt: 2 }}>
+          <InputLabel>Thought Bucket</InputLabel>
+          <Select
+            value={data.selectedBucket?.id || ''}
+            label="Thought Bucket"
+            onChange={(e) => {
+              const bucketId = e.target.value as number;
+              const bucket = thoughtBuckets.find((b) => b.id === bucketId);
+              onDataChange({
+                selectedBucket: bucket || null,
+                showOnDashboard: bucket?.showOnDashboard ?? true,
+              });
+            }}
+            disabled={loadingBuckets || loadingThought}
+            displayEmpty
+          >
+            {loadingBuckets ? (
+              <MenuItem disabled>
+                <CircularProgress size={20} />
               </MenuItem>
-            ))
-          )}
-        </Select>
-      </FormControl>
+            ) : thoughtBuckets.length === 0 ? (
+              <MenuItem disabled>No thought buckets available</MenuItem>
+            ) : (
+              thoughtBuckets.map((bucket) => (
+                <MenuItem key={bucket.id} value={bucket.id}>
+                  {bucket.description || `Bucket #${bucket.id}`}
+                </MenuItem>
+              ))
+            )}
+          </Select>
+        </FormControl>
+        <Tooltip title="Add thought bucket">
+          <span>
+            <IconButton
+              color="primary"
+              aria-label="Add thought bucket"
+              onClick={() => setAddBucketOpen(true)}
+              disabled={loadingThought}
+              sx={{ mt: 2 }}
+            >
+              <AddIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Box>
+      <AddThoughtBucketModal
+        open={addBucketOpen}
+        onClose={() => setAddBucketOpen(false)}
+        onSuccess={(bucket) => {
+          onThoughtBucketCreated?.(bucket);
+        }}
+      />
       <FormControl fullWidth margin="normal">
         <InputLabel>Details Type</InputLabel>
         <Select

@@ -60,6 +60,16 @@ namespace BucketOfThoughts.Api.Middleware
                             };
                             dbContext.LoginProfiles.Add(loginProfile);
                             await dbContext.SaveChangesAsync();
+                            var randomBucket = new ThoughtBucket
+                            {
+                                Description = "Random",
+                                LoginProfileId = loginProfile.Id,
+                                ThoughtModuleId = await dbContext.ThoughtModules
+                                    .Where(tm => tm.Description == "Random")
+                                    .Select(tm => tm.Id)
+                                    .SingleOrDefaultAsync()
+                            };
+                            await dbContext.SaveChangesAsync();
                         }
                         catch (DbUpdateException ex)
                         {

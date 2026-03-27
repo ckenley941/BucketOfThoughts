@@ -320,6 +320,26 @@ const ThoughtWizard = () => {
     setThoughtData((prev) => ({ ...prev, ...data }));
   };
 
+  const handleThoughtBucketCreated = async (created: ThoughtBucket) => {
+    try {
+      const response = await apiClient.get<ThoughtBucket[]>('api/thoughtbuckets');
+      setThoughtBuckets(response.data);
+      const match = response.data.find((b) => b.id === created.id);
+      const bucket = match ?? created;
+      setThoughtData((prev) => ({
+        ...prev,
+        selectedBucket: bucket,
+        showOnDashboard: bucket.showOnDashboard ?? true,
+      }));
+    } catch {
+      setThoughtData((prev) => ({
+        ...prev,
+        selectedBucket: created,
+        showOnDashboard: created.showOnDashboard ?? true,
+      }));
+    }
+  };
+
   const renderStepContent = () => {
     switch (activeStep) {
       case 0:
@@ -330,6 +350,7 @@ const ThoughtWizard = () => {
             loadingBuckets={loadingBuckets}
             loadingThought={loadingThought}
             onDataChange={handleThoughtDataChange}
+            onThoughtBucketCreated={handleThoughtBucketCreated}
           />
         );
       case 1:

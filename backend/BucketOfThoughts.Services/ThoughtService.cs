@@ -131,7 +131,7 @@ public class ThoughtService(BucketOfThoughtsDbContext dbContext, IUserSessionPro
     public async Task<ApplicationServiceResult<ThoughtDto>> GetRandomThought(long? bucketId = null)
     {
         var query = dbContext.Thoughts
-            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted);
+            .Where(t => t.LoginProfileId == userSessionProvider.LoginProfileId && !t.IsDeleted && t.ShowOnDashboard);
 
         if (bucketId.HasValue && bucketId.Value > 0)
         {
